@@ -13,7 +13,7 @@ static std::stringstream ss;
 "(" { return LPAREN;}
 ")" { return RPAREN;}
 
-"()" { return EMPTY_LIST; }
+"'()" { return EMPTY_LIST; }
 "#f" | "#t" { yylval.boolval = strcmp(yytext, "#t") == 0; return BOOL_LITERAL; }
 -?[0-9]+ { yylval.intval = atoi(yytext); return INT_LITERAL;}
 -?([0-9]*\.[0-9]+([eE][-+]?[0-9]+)?)  { yylval.fltval = atof(yytext); return REAL_LITERAL;}
@@ -61,7 +61,8 @@ static std::stringstream ss;
 <strlit>\\.         { printf("Invalid escape character '%s'\n", yytext); }
 <strlit>\n          { printf("Found newline in string\n"); }
 
-. {printf("Unrecognized character %c\n", *yytext);}
+[\t\n ]             {}
+. { printf("Unrecognized character %c\n", *yytext); }
 %%
 
   /*int main(int argc, char **argv) {
