@@ -63,7 +63,7 @@ extern FILE *yyin;
   ASTExpressionComparisonType rel;
 }
 
-%token ID BOOL_TYPE INT_TYPE FLOAT_TYPE STRING_TYPE VOID_TYPE SEMICOLON LPAREN RPAREN COMMA LBRACE RBRACE IF ELSE WHILE FOR BREAK RETURN EQUALS_SIGN LOGICAL_OR LOGICAL_AND LOGICAL_NOT RELOP_GT RELOP_LT RELOP_GE RELOP_LE RELOP_EQ RELOP_NE ARITH_PLUS ARITH_MINUS ARITH_MULT ARITH_DIV ARITH_MOD VARIADIC BOOL_LITERAL INT_LITERAL FLOAT_LITERAL STRING_LITERAL EOL
+%token LPAREN RPAREN BOOL_LITERAL INT_LITERAL REAL_LITERAL ID RELOP_GT RELOP_LT RELOP_GE RELOP_LE RELOP_EQ ARITH_PLUS ARITH_MINUS ARITH_MULT ARITH_DIV ARITH_REMAINDER NULL_CHECK_OP BOOL_CHECK_OP NUMBER_CHECK_OP REAL_CHECK_OP LIST_CHECK_OP LOGICAL_OR LOGICAL_AND LOGICAL_NOT SET DEFINE LET CAR CDR CONS LAMBDA COND IF ELSE APOSTROPHE STRING_LITERAL  
 
 %type <boolval> BOOL_LITERAL
 %type <strval> ID STRING_LITERAL
@@ -82,10 +82,34 @@ extern FILE *yyin;
 
 %%
  //AST does not support global variables, so the only declarations are functions
-program: | decList ;
-decList: decList dec | dec ;
-dec: funDef | funDec ;
+program: | formlist ;
+formList: | formlist def | formlist expr ;
 
+//productions for variable bindings
+def: binding ;
+binding: LPAREN DEFINE var exp RPAREN  ;
+var: ID  ;
+
+
+exprList: | exprList expr  ;
+expr: datum 
+    | LPAREN IF expr expr expr RPAREN  
+    | LPAREN IF expr expr RPAREN  
+    | LPAREN SET var epxr RPAREN  
+    | LPAREN LOGICAL_AND expList RPAREN
+    | LPAREN LOGICAL_OR RPAREN
+    | LPAREN LOGICAL_NOT RPAREN
+    | LPAREN binaryMathOp expr expr RPAREN
+    | LPAREN ARITH_MINUS expr RPAREN
+    | LPAREN CONS expr expr RPAREN
+    | LPAREN CAR expr RPAREN
+    | LPAREN CDR expr RPAREN
+    | LPAREN relop expr expr RPAREN
+    | LPAREN NULL_CHECK_OP expr RPAREN  ;
+
+
+//how types were handled previously...need to figure out how they handled here
+/*
 type: BOOL_TYPE {
   $$ = new VarTypeSimple(VarTypeSimple::BoolType);
  }| INT_TYPE {
@@ -97,10 +121,26 @@ type: BOOL_TYPE {
  } | VOID_TYPE {
   $$ = new VarTypeSimple(VarTypeSimple::VoidType);
  };
+*/
+
+
+//Data types and operators
+datumList: | datumList datum ; 
+datum: BOOL_LITERAL | intLit | realLit | STRING_LITERAL | list | var ;
+
+intLit: INT_LITERAL | ARITH_MINUS INT_LITERAL {$$ = -1 * $2;};
+realLit: REAL_LITERAL | ARITH_MINUS REAL_LITERAL {$$ = -1 * $2;};
+
+list: APOSTROPHE LPAREN datumList RPAREN  ; 
+relop: RELOP_LT | RELOP_LE | RELOP_GT | RELOP_GE | RELOP_EQ ;
+binaryMathOp: ARITH_PLUS | ARITH_MINUS | ARITH_MULT | ARITH_DIV | ARITH_REMAINDER  ;
+
 varDec: type ID {
   //ASTFunctionParameter is just a tuple of a unique pointer to a type and a string (see definition in function.h)
   $$ = new ASTFunctionParameter(std::unique_ptr<VarType>($1), $2); 
  };
+
+
 varDecs: varDecs varDec SEMICOLON {
   $$ = $1; //We know that varDecs is always a pointer to vector of variables, so we can just copy it and push the next variable
   $$->push_back($2);

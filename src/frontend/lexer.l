@@ -13,26 +13,23 @@ static std::stringstream ss;
 "(" { return LPAREN;}
 ")" { return RPAREN;}
 
-"'()" { return EMPTY_LIST; }
 "#f" | "#t" { yylval.boolval = strcmp(yytext, "#t") == 0; return BOOL_LITERAL; }
 -?[0-9]+ { yylval.intval = atoi(yytext); return INT_LITERAL;}
 -?([0-9]*\.[0-9]+([eE][-+]?[0-9]+)?)  { yylval.fltval = atof(yytext); return REAL_LITERAL;}
 [a-zA-Z_]+[a-zA-Z0-9_]*     { yyval.strval = yytext; return ID; }
 
-"=" { return NUMBER_EQUAL_OP;}
 ">" { return RELOP_GT; }
 "<" { return RELOP_LT; }
 ">=" { return RELOP_GE; }
 "<=" { return RELOP_LE; }
-"!=" { return RELOP_NE; }
+"eq?" { return RELOP_EQ;}
 "+" { return ARITH_PLUS; }
 "-" { return ARITH_MINUS; }
 "*" { return ARITH_MULT; }
 "/" { return ARITH_DIV; }
-"expt" { return ARITH_EXPONENT; }
 "remainder" { return ARITH_REMAINDER; }
 
-"eq?" { return GENERIC_EQUAL_OP;}
+"null?" { return NULL_CHECK_OP; }
 "boolean?" { return BOOL_CHECK_OP; }
 "number?" { return NUMBER_CHECK_OP; }
 "real?" { return REAL_CHECK_OP; }
@@ -40,7 +37,7 @@ static std::stringstream ss;
 "or" { return LOGICAL_OR; }
 "and" { return LOGICAL_AND; }
 "not" { return LOGICAL_NOT; }
-"set!" { return SET_VARIABLE_OP; }
+"set!" { return SET; }
 "define" { return DEFINE; }
 "let" { return LET; }
 "car" { return CAR; }
@@ -50,8 +47,7 @@ static std::stringstream ss;
 "cond" { return COND; }
 "if" { return IF; }
 "else" { return ELSE; }
-"list" { return LIST; }
-
+"'"    { return APOSTROPHE; } 
 \"                  { BEGIN strlit; ss.str(std::string()); }
 <strlit>[^\\"\n]*   { ss << yytext;}
 <strlit>\\n         { ss << '\n';}
