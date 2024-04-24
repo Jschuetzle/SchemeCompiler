@@ -1,34 +1,34 @@
 %code requires {
-  #include <stdio.h>
-#include <stdlib.h>
-#include <vector>
-#include <string>
-#include <cstring>
-#include <variant>
-#include <iostream>
-  //all of these includes are done as relative paths starting from the build/ directory, since that's where CMake places parser.tab.cc
-#include "../src/ast.h"
-#include "../src/expressions/call.h"
-#include "../src/expressions/int.h"
-#include "../src/expressions/float.h"
-#include "../src/expressions/string.h"
-#include "../src/expressions/variable.h"
-#include "../src/expressions/addition.h"
-#include "../src/expressions/sub.h"
-#include "../src/expressions/multiplication.h"
-#include "../src/expressions/division.h"
-#include "../src/expressions/assignment.h"
-#include "../src/expressions/comparison.h"
-#include "../src/expressions/and.h"
-#include "../src/expressions/or.h"
-#include "../src/statements/block.h"
-#include "../src/statements/while.h"
-#include "../src/statements/for.h"
-#include "../src/statements/if.h"
-#include "../src/statements/return.h"
-#include "../src/types/simple.h"
-extern FILE *yyin;
- }
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <vector>
+	#include <string>
+	#include <cstring>
+	#include <variant>
+	#include <iostream>
+	//all of these includes are done as relative paths starting from the build/ directory, since that's where CMake places parser.tab.cc
+	#include "../src/ast.h"
+	#include "../src/expressions/call.h"
+	#include "../src/expressions/int.h"
+	#include "../src/expressions/float.h"
+	#include "../src/expressions/string.h"
+	#include "../src/expressions/variable.h"
+	#include "../src/expressions/addition.h"
+	#include "../src/expressions/sub.h"
+	#include "../src/expressions/multiplication.h"
+	#include "../src/expressions/division.h"
+	#include "../src/expressions/assignment.h"
+	#include "../src/expressions/comparison.h"
+	#include "../src/expressions/and.h"
+	#include "../src/expressions/or.h"
+	#include "../src/statements/block.h"
+	#include "../src/statements/while.h"
+	#include "../src/statements/for.h"
+	#include "../src/statements/if.h"
+	#include "../src/statements/return.h"
+	#include "../src/types/simple.h"
+	extern FILE *yyin; 
+}
 
 %{
 #include "parser.tab.hh"
@@ -50,7 +50,7 @@ extern FILE *yyin;
 %union {
   bool boolval;
   int intval;
-  double fltval;
+  double realval;
   char *strval;
   struct node *nodeval;
   ASTFunctionParameter *var;
@@ -63,65 +63,104 @@ extern FILE *yyin;
   ASTExpressionComparisonType rel;
 }
 
-%token LPAREN RPAREN BOOL_LITERAL INT_LITERAL REAL_LITERAL ID RELOP_GT RELOP_LT RELOP_GE RELOP_LE RELOP_EQ ARITH_PLUS ARITH_MINUS ARITH_MULT ARITH_DIV ARITH_REMAINDER NULL_CHECK_OP BOOL_CHECK_OP NUMBER_CHECK_OP REAL_CHECK_OP LIST_CHECK_OP LOGICAL_OR LOGICAL_AND LOGICAL_NOT SET DEFINE LET CAR CDR CONS LAMBDA COND IF ELSE APOSTROPHE STRING_LITERAL  
+%token LPAREN RPAREN BOOL_LITERAL INT_LITERAL REAL_LITERAL ID RELOP_GT RELOP_LT RELOP_GE RELOP_LE RELOP_EQ ARITH_PLUS ARITH_MINUS ARITH_MULT ARITH_DIV ARITH_REMAINDER NULL_CHECK_OP BOOL_CHECK_OP NUMBER_CHECK_OP REAL_CHECK_OP LIST_CHECK_OP LOGICAL_OR LOGICAL_AND LOGICAL_NOT SET DEFINE LET CAR CDR CONS LAMBDA COND IF ELSE APOSTROPHE STRING_LITERAL INT_TYPE REAL_TYPE STRING_TYPE LIST_TYPE
 
 %type <boolval> BOOL_LITERAL
 %type <strval> ID STRING_LITERAL
-%type <intval> int_lit INT_LITERAL
-%type <fltval> flt_lit FLOAT_LITERAL
+%type <intval> intLit INT_LITERAL
+%type <realval> realLit FLOAT_LITERAL
 %type <var> varDec
-%type <vars> params paramList varDecs
+%type <vars> 
 %type <stmt> stmt exprStmt selStmt iterStmt jumpStmt
 %type <stmtVec> stmts
 %type <exp> expr orExpr andExpr unaryRelExpr relExpr term factor primary call constant
 %type <exprVec> args
-%type <type> type
+//%type <type> type
 %type <rel> relop
 
 %expect 1 // Shift/reduce conflict when resolving the if/else production; okay
 
 %%
- //AST does not support global variables, so the only declarations are functions
-program: | formlist ;
-formList: | formlist def | formlist expr ;
+
+/*
+Originally, I wasn't going to force definitions to come first, i.e. expressions could be called whenever.
+However, this makes the AST.Compile function difficult. Based on the fields stored in the AST class, we would
+either have to combine the fields in a clever way to ensure the correct compilation order, or we would have to 
+treat everything as an expression (which is not desired since we want a distinction between define and let).
+
+Therefore, the grammar must enforce that all binding syntax comes before expressions
+*/
+program: | globalDefList exprList ;
+
+type: BOOL_TYPE {
+  $$ = new VarTypeSimple(VarTypeSimple::BoolType);
+}| INT_TYPE {
+  $$ = new VarTypeSimple(VarTypeSimple::IntType);
+}| FLOAT_TYPE {
+  $$ = new VarTypeSimple(VarTypeSimple::FloatType);
+}| STRING_TYPE {
+  $$ = new VarTypeSimple(VarTypeSimple::StringType);
+} | LIST_TYPE RELOP_LT type RELOP_GT {
+  $$ = new VarTypeList(std::unique_ptr<VarType>($3));
+};
 
 //productions for variable bindings
-def: binding ;
-binding: LPAREN DEFINE var exp RPAREN  ;
-var: ID  ;
+globalDefList: | globalDefList LPAREN DEFINE ID expr RPAREN  ; 
 
 
-exprList: | exprList expr  ;
+//nonterminals inside production body for lambda expression
+paramList: | paramList type ID  ;
+bindList: | bindList LPAREN ID expr RPAREN ;
+
 expr: datum 
+    | LPAREN LAMBDA type LPAREN paramList RPAREN expr RPAREN {
+
+      //the new framework probably won't have statement blocks...
+      //statements and expressions need to be compared, because my compiler seems to only have expressions (because everything is a function)
+      //MIGHT HAVE TO CREATE A CONSTRUCT SUCH AS EXPRESSIONBLOCK
+      auto parameters = ASTFunctionParameters();
+
+      //varList semantic value is std::vector<ASTFunctionParameter *> *vars; 
+      for(auto p : *$4) {
+        if (p) parameters.push_back(std::move(*p));
+      }
+      auto func = std::make_unique<ASTFunction>(*this, std::move(parameters));
+  
+      //need to figure out what to do here...
+      //in the original project grammar, body was split into the defs and the statements...so I need to think about what the semantic value of "body" is in the production body 
+      for(auto s : *$8) {
+        statements->statements.push_back(std::unique_ptr<ASTStatement>(s));
+      } 
+      for(auto d : *$7) {
+        f->AddStackVar(std::move(*d));
+      }
+      f->Define(std::unique_ptr<ASTStatement>(statements));
+       
+    }
+    | LPAREN ID exprList RPAREN
+    | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN 
     | LPAREN IF expr expr expr RPAREN  
     | LPAREN IF expr expr RPAREN  
-    | LPAREN SET var epxr RPAREN  
-    | LPAREN LOGICAL_AND expList RPAREN
-    | LPAREN LOGICAL_OR RPAREN
-    | LPAREN LOGICAL_NOT RPAREN
+    | LPAREN COND caseList LPAREN ELSE expr RPAREN RPAREN
+    | LPAREN LOGICAL_AND exprList expr RPAREN
+    | LPAREN LOGICAL_OR exprList expr RPAREN
+    | LPAREN LOGICAL_NOT expr RPAREN
     | LPAREN binaryMathOp expr expr RPAREN
     | LPAREN ARITH_MINUS expr RPAREN
     | LPAREN CONS expr expr RPAREN
     | LPAREN CAR expr RPAREN
     | LPAREN CDR expr RPAREN
     | LPAREN relop expr expr RPAREN
-    | LPAREN NULL_CHECK_OP expr RPAREN  ;
+    | LPAREN NULL_CHECK_OP expr RPAREN
+    | LPAREN BOOL_CHECK_OP expr RPAREN
+    | LPAREN NUMBER_CHECK_OP expr RPAREN
+    | LPAREN REAL_CHECK_OP expr RPAREN
+    | LPAREN LIST_CHECK_OP expr RPAREN
+    | LPAREN RPAREN  ;
 
-
-//how types were handled previously...need to figure out how they handled here
-/*
-type: BOOL_TYPE {
-  $$ = new VarTypeSimple(VarTypeSimple::BoolType);
- }| INT_TYPE {
-  $$ = new VarTypeSimple(VarTypeSimple::IntType);
- }| FLOAT_TYPE {
-  $$ = new VarTypeSimple(VarTypeSimple::FloatType);
- }| STRING_TYPE {
-  $$ = new VarTypeSimple(VarTypeSimple::StringType);
- } | VOID_TYPE {
-  $$ = new VarTypeSimple(VarTypeSimple::VoidType);
- };
-*/
+//used when a variable number of operands is required
+exprList: | exprList expr  ;
+caseList: | caseList LPAREN expr expr RPAREN  ;
 
 
 //Data types and operators
