@@ -1,4 +1,4 @@
-#include "function.h"
+#include "function.
 
 #include "ast.h"
 #include "types/simple.h"
@@ -43,6 +43,14 @@ void ASTFunction::AddStackVar(ASTFunctionParameter var)
 
 }
 
+
+/*
+    I REALLY want to change this function so it will actually go through the entire ancestry
+    of static scoping to find the variable. However time is a thing...
+
+   This code just checks the local scope and then the global scope. In reality, if the variable doesn't exist
+   in the local scope, then the scope where the function definition occurs is looked through (and so on and so forth) 
+*/
 VarType* ASTFunction::GetVariableType(const std::string& name)
 {
     VarType* ret;
@@ -82,7 +90,7 @@ void ASTFunction::SetVariableValue(const std::string& name, llvm::Value* value)
     }
 }
 
-void ASTFunction::Define(std::unique_ptr<ASTStatement> definition)
+void ASTFunction::Define(std::unique_ptr<ASTExpression> definition)
 {
     if (!this->definition) // Define only if not already defined.
     {

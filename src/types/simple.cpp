@@ -2,7 +2,7 @@
 
 VarTypeSimple VarTypeSimple::BoolType = VarTypeSimple(VarTypeSimpleEnumeration::Bool);
 VarTypeSimple VarTypeSimple::IntType = VarTypeSimple(VarTypeSimpleEnumeration::Int);
-VarTypeSimple VarTypeSimple::FloatType = VarTypeSimple(VarTypeSimpleEnumeration::Float);
+VarTypeSimple VarTypeSimple::RealType = VarTypeSimple(VarTypeSimpleEnumeration::Real);
 VarTypeSimple VarTypeSimple::StringType = VarTypeSimple(VarTypeSimpleEnumeration::String);
 
 std::unique_ptr<VarType> VarTypeSimple::Copy()
@@ -16,7 +16,7 @@ llvm::Type* VarTypeSimple::GetLLVMType(llvm::LLVMContext& ctx)
     {
         case VarTypeSimpleEnumeration::Bool: return (llvm::Type*)llvm::Type::getInt1Ty(ctx);
         case VarTypeSimpleEnumeration::Int: return (llvm::Type*)llvm::Type::getInt32Ty(ctx);
-        case VarTypeSimpleEnumeration::Float: return llvm::Type::getDoubleTy(ctx);
+        case VarTypeSimpleEnumeration::Real: return llvm::Type::getDoubleTy(ctx);
         case VarTypeSimpleEnumeration::String: return (llvm::Type*)llvm::Type::getInt8PtrTy(ctx);
     }
     return nullptr;

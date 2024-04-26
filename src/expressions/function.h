@@ -1,9 +1,8 @@
 #pragma once
 
-#include "scopeTable.h"
-#include "statement.h"
-#include "types/function.h"
-#include "varType.h"
+#include "../scopeTable.h"
+#include "../types/function.h"
+#include "../varType.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Function.h>
 #include <string>
@@ -19,21 +18,18 @@ typedef std::tuple<std::unique_ptr<VarType>, std::string> ASTFunctionParameter;
 typedef std::vector<ASTFunctionParameter> ASTFunctionParameters;
 
 // Function type that has a declaration and optional definition.
-class ASTFunction
+class ASTFunction : ASTExpression
 {
 private:
 
     // List of all the parameters.
     std::vector<std::string> parameters;
 
-    // List of all stack variables.
-    std::vector<std::string> stackVariables;
+    // List of all local variables (stored on the stack)
+    std::vector<std::string> localVariables;
 
     // Function scope table.
     ScopeTable scopeTable;
-
-    // Pointer to the AST.
-    AST& ast;
 
     // Actual Function definition.
     std::unique_ptr<ASTExpression> definition = nullptr;

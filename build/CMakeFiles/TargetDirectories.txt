@@ -1,0 +1,3 @@
+/home/jschuetzle/school/compilers/SchemeCompiler/build/CMakeFiles/LLVM-Lab.dir
+/home/jschuetzle/school/compilers/SchemeCompiler/build/CMakeFiles/edit_cache.dir
+/home/jschuetzle/school/compilers/SchemeCompiler/build/CMakeFiles/rebuild_cache.dir

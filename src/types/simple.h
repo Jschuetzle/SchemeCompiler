@@ -7,7 +7,7 @@ enum VarTypeSimpleEnumeration
 {
     Bool,
     Int,
-    Float,
+    Real,
     String
 };
 
@@ -23,7 +23,7 @@ public:
     // Constant types to help.
     static VarTypeSimple BoolType;
     static VarTypeSimple IntType;
-    static VarTypeSimple FloatType;
+    static VarTypeSimple RealType;
     static VarTypeSimple StringType;
 
     // Create a new simple type from the enumeration. You probably don't need to use this!

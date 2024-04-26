@@ -1,7 +1,6 @@
 #pragma once
 
-#include "function.h"
-#include "globalVar.h"
+#include "expression.h"
 #include "scopeTable.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>

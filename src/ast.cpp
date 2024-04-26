@@ -42,6 +42,8 @@ AST::AST(const std::string modName) : module(modName, context), builder(context)
 
 ASTExpression* AST::AddGlobalVariable(const std::string& name, std::unique_ptr<ASTExpression> expr)
 {
+    if(scopeTable.AddVariable(name, expr->ReturnType()->Copy()))
+        throw std::runtime_error("ERROR: Global Variable with name " + name + " already exists.");
     globalVarList.push_back(name);
     globalVars[name] = std::move(expr);
     return globalVars[name].get();

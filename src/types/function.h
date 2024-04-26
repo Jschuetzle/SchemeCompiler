@@ -12,9 +12,6 @@ private:
 
 public:
 
-    // If the function type is variadic.
-    bool varArgs;
-
     // Return type.
     std::unique_ptr<VarType> returnType;
 
@@ -24,7 +21,7 @@ public:
     // Create a function type.
     // returnType: What type the function returns.
     // parameterTypes: Types of each parameter.
-    VarTypeFunction(std::unique_ptr<VarType> returnType, std::vector<std::unique_ptr<VarType>> parameterTypes, bool varArgs = false) : returnType(std::move(returnType)), parameterTypes(std::move(parameterTypes)), varArgs(varArgs) {}
+    VarTypeFunction(std::unique_ptr<VarType> returnType, std::vector<std::unique_ptr<VarType>> parameterTypes) : returnType(std::move(returnType)), parameterTypes(std::move(parameterTypes)) {}
 
     // Virtual functions. See base class for details.
     virtual std::unique_ptr<VarType> Copy() override;
