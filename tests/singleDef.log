@@ -2,10 +2,9 @@
 -- Generating done
 -- Build files have been written to: /home/jschuetzle/school/compilers/SchemeCompiler/build
 Consolidate compiler generated dependencies of target LLVM-Lab
-[  6%] Building CXX object CMakeFiles/LLVM-Lab.dir/src/ast.cpp.o
-[ 13%] Linking CXX executable ../bin/LLVM-Lab
 [100%] Built target LLVM-Lab
-a 5)
-terminate called after throwing an instance of 'std::runtime_error'
-  what():  ERROR: Global Variable with name a 5) already exists.
-./run.sh: line 4: 17205 Aborted                 bin/LLVM-Lab $@
+a
+INFO: Compiling binding a.
+TestMod
+└──5
+

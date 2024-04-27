@@ -53,8 +53,6 @@ static std::stringstream ss;
 "#f" | "#t" { yylval.boolval = strcmp(yytext, "#t") == 0; return BOOL_LITERAL; }
 [0-9]+ { yylval.intval = atoi(yytext); return INT_LITERAL;}
 ([0-9]*\.[0-9]+([eE][-+]?[0-9]+)?)  { yylval.fltval = atof(yytext); return REAL_LITERAL;}
-[a-zA-Z_]+[a-zA-Z0-9_]*     { yylval.strval = yytext; return ID; }
-
 \"                  { BEGIN strlit; ss.str(std::string()); }
 <strlit>[^\\"\n]*   { ss << yytext;}
 <strlit>\\n         { ss << '\n';}
@@ -63,7 +61,7 @@ static std::stringstream ss;
 <strlit>\"          { yylval.strval = strdup((char *) ss.str().c_str()); BEGIN 0; return STRING_LITERAL; }
 <strlit>\\.         { printf("Invalid escape character '%s'\n", yytext); }
 <strlit>\n          { printf("Found newline in string\n"); }
-
+[_a-zA-Z][_a-zA-Z0-9]*     { yylval.strval = strdup(yytext); return ID; }
 [\t\n ]             {}
 . { printf("Unrecognized character %c\n", *yytext); }
 %%
