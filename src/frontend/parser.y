@@ -10,7 +10,7 @@
 	#include "../src/ast.h"
 	//#include "../src/expressions/call.h"
 	#include "../src/expressions/int.h"
-	//#include "../src/expressions/float.h"
+	#include "../src/expressions/real.h"
 	//#include "../src/expressions/string.h"
 	#include "../src/expressions/variable.h"
 	//#include "../src/expressions/addition.h"
@@ -23,6 +23,7 @@
 	//#include "../src/expressions/or.h"
 	//#include "../src/expressions/if.h"
 	#include "../src/types/simple.h"
+    #include "../src/types/list.h"
 	extern FILE *yyin; 
 }
 
@@ -46,7 +47,7 @@
 %union {
   bool boolval;
   int intval;
-  double realval;
+  double fltval;
   char *strval;
   struct node *nodeval;
   //ASTFunctionParameter *var;
@@ -62,7 +63,7 @@
 %type <boolval> BOOL_LITERAL
 %type <strval> ID STRING_LITERAL
 %type <intval> intLit INT_LITERAL
-%type <realval> realLit REAL_LITERAL
+%type <fltval> realLit REAL_LITERAL
 //%type <var> varDec
 //%type <vars> 
 %type <exp> expr datum 
@@ -70,7 +71,7 @@
 %type <type> type
 //%type <rel> relop
 
-%expect 1 // Shift/reduce conflict when resolving the if/else production; okay
+%expect 0 // Shift/reduce conflict when resolving the if/else production; 
 
 %%
 
@@ -82,26 +83,26 @@ treat everything as an expression (which is not desired since we want a distinct
 
 Therefore, the grammar must enforce that all binding syntax comes before expressions
 */
-program: | globalDefList exprList ;
+program: globalDefList exprList ;
 
 globalDefList: | globalDefList LPAREN DEFINE ID expr RPAREN {
     //this will essentially just add the name and the expr to the varList and varMap fields in AST
     //we don't need to worry about adding to scopeTable just yet...that will happen when we compile expressions in AST.compile 
     
 
-    auto v = ast.addGlobalVariable($4, std::unique_ptr<ASTExpression>($5));
+    auto v = ast.AddGlobalVariable($4, std::unique_ptr<ASTExpression>($5));
      
     //this is all that needs to be done i think...check funDef in PG4 for comparison
 } ;
 
-exprList: | exprList expr  ;
+exprList: | expr exprList  ;
 
 type: BOOL_TYPE {
   $$ = new VarTypeSimple(VarTypeSimple::BoolType);
 }| INT_TYPE {
   $$ = new VarTypeSimple(VarTypeSimple::IntType);
 }| REAL_TYPE {
-  $$ = new VarTypeSimple(VarTypeSimple::FloatType);
+  $$ = new VarTypeSimple(VarTypeSimple::RealType);
 }| STRING_TYPE {
   $$ = new VarTypeSimple(VarTypeSimple::StringType);
 } | LIST_TYPE RELOP_LT type RELOP_GT {
@@ -136,7 +137,7 @@ expr: datum
 
 //nonterminals inside production body for lambda expression
 paramList: | paramList type ID  ;
-//bindList: | bindList bind  ;
+//bindList: | bind bindList  ;
 //bind: LPAREN ID expr RPAREN  ;
 
 //used when binding pairs are needed in a let
@@ -146,13 +147,13 @@ paramList: | paramList type ID  ;
 //datumList: | datumList datum ; 
 datum: 
     intLit {
-        $$ = new ASTExpressionInt($1);
+        $$ = new ASTExpressionInt(ast, $1);
     }  
   | realLit {
-        $$ = new ASTExpressionReal($1);
+        $$ = new ASTExpressionReal(ast, $1);
     }
   | ID {
-        $$ = new ASTExpressionVariable($1);
+        $$ = new ASTExpressionVariable(ast, $1);
     };
 
     /*

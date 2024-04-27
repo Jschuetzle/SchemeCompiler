@@ -1,10 +1,10 @@
-#include "function.
+#include "function.h"
 
 #include "ast.h"
 #include "types/simple.h"
 #include <llvm/IR/Verifier.h>
 
-ASTFunction::ASTFunction(AST& ast const std::string& name, std::unique_ptr<VarType> returnType, ASTFunctionParameters parameters, bool variadic) : ast(ast), name(name)
+ASTFunction::ASTFunction(AST& ast, const std::string& name, std::unique_ptr<VarType> returnType, ASTFunctionParameters parameters) : ASTExpression(ast), name(name)
 {
 
     // Create the function type.
@@ -14,7 +14,7 @@ ASTFunction::ASTFunction(AST& ast const std::string& name, std::unique_ptr<VarTy
     {
         paramTypes.push_back(std::get<0>(param)->Copy()); // This copies the first item of the tuple, which is a var type pointer.
     }
-    funcType = std::make_unique<VarTypeFunction>(std::move(returnType), std::move(paramTypes), variadic);
+    funcType = std::make_unique<VarTypeFunction>(std::move(returnType), std::move(paramTypes));
 
     // Add to scope table, we need to error if it already exists.
     if (!ast.scopeTable.AddVariable(name, funcType->Copy()))
@@ -39,7 +39,7 @@ void ASTFunction::AddStackVar(ASTFunctionParameter var)
     {
         throw std::runtime_error("ERROR: Variable " + std::get<1>(var) + " is already defined in function " + name + "!");
     }
-    stackVariables.push_back(std::get<1>(var));
+    localVariables.push_back(std::get<1>(var));
 
 }
 
@@ -128,11 +128,11 @@ void ASTFunction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder)
         Now that we did that, we can use our GetVariableValue and SetVariableValue functions to get the pointer to the variable, which we can load from or store to!
         Note that how the stored stack variables are pointers to a value is what makes us classify it as an L-Value!
     */
-    for (auto& stackVar : stackVariables)
+    for (auto& localVar : localVariables)
     {
         scopeTable.SetVariableValue(
-            stackVar,
-            builder.CreateAlloca(scopeTable.GetVariableType(stackVar)->GetLLVMType(builder.getContext()), nullptr, stackVar)
+            localVar,
+            builder.CreateAlloca(scopeTable.GetVariableType(localVar)->GetLLVMType(builder.getContext()), nullptr, localVar)
         );
     }
 
@@ -143,16 +143,17 @@ void ASTFunction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder)
     }
 
     // Check the function body to make sure it returns what we expect it to.
-    std::unique_ptr<VarType> retType = definition->StatementReturnType(*this);
-    bool satisfiesType = !retType && funcType->returnType->Equals(&VarTypeSimple::VoidType); // If we return nothing and expect void, it works.
-    if (!satisfiesType && retType) satisfiesType = retType->Equals(funcType->returnType.get()); // If we return something, make sure we return what is expected.
+    std::unique_ptr<VarType> retType = definition->ReturnType(this);
+    bool satisfiesType = false;
+
+    if (retType) satisfiesType = retType->Equals(funcType->returnType.get()); // If we return something, make sure we return what is expected.
     if (!satisfiesType)
     {
         throw std::runtime_error("ERROR: Function " + name + " has a return type mismatch error");
     }
 
     // Generate the function.
-    definition->Compile(mod, builder, *this);
+    definition->Compile(mod, builder, this);
 
     // Add an implicit return void if necessary.
     if (!retType)

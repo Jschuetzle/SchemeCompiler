@@ -42,6 +42,8 @@ AST::AST(const std::string modName) : module(modName, context), builder(context)
 
 ASTExpression* AST::AddGlobalVariable(const std::string& name, std::unique_ptr<ASTExpression> expr)
 {
+    std::cout << name << std::endl;
+
     if(scopeTable.AddVariable(name, expr->ReturnType()->Copy()))
         throw std::runtime_error("ERROR: Global Variable with name " + name + " already exists.");
     globalVarList.push_back(name);
@@ -59,7 +61,7 @@ ASTExpression* AST::GetGlobalVariable(const std::string& name)
 
 ASTExpression* AST::AddExpressionCall(std::unique_ptr<ASTExpression> expr)
 {
-    globalExprs.push_back(expr);
+    globalExprs.push_back(std::move(expr));
     return globalExprs.back().get();
 }
 
@@ -70,14 +72,14 @@ void AST::Compile()
     for (auto& varName : globalVarList)
     {
         std::cout << "INFO: Compiling binding " + varName + "." << std::endl;
-        globalVars[varName]->Compile(module, builder);
+        globalVars[varName]->Compile(builder);
     }
 
     //Then, compile all the global expressions...expressions are nameless, so just put iter # inside string
     for (int i=0; i<globalExprs.size(); i++)
     {
-        std::cout << "INFO: Compiling expression " + i + << std::endl;
-        globalExprs.at(i).get()->Compile(module, builder);
+        std::cout << "INFO: Compiling expression " + i << std::endl;
+        globalExprs.at(i).get()->Compile(builder);
     }
 
     compiled = true;
@@ -92,7 +94,7 @@ std::string AST::ToString()
     if(globalExprs.size() == 0){
         output += "└──" + globalVars[globalVarList.back()]->ToString("   "); 
     } else {
-        output += "├──" + functions[functionList.back()]->ToString("|  ");
+        output += "├──" + globalVars[globalVarList.back()]->ToString("|  ");
         for (int i=0; i<globalExprs.size() - 1; i++)
            output += "├──" + globalExprs.at(i).get()->ToString("|  ");
 

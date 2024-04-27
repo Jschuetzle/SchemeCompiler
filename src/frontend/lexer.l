@@ -20,11 +20,6 @@ static std::stringstream ss;
 "list"    { return LIST_TYPE; }
 "'"       { return APOSTROPHE; }
 
-"#f" | "#t" { yylval.boolval = strcmp(yytext, "#t") == 0; return BOOL_LITERAL; }
-[0-9]+ { yylval.intval = atoi(yytext); return INT_LITERAL;}
-([0-9]*\.[0-9]+([eE][-+]?[0-9]+)?)  { yylval.fltval = atof(yytext); return REAL_LITERAL;}
-[a-zA-Z_]+[a-zA-Z0-9_]*     { yyval.strval = yytext; return ID; }
-
 ">" { return RELOP_GT; }
 "<" { return RELOP_LT; }
 ">=" { return RELOP_GE; }
@@ -54,6 +49,12 @@ static std::stringstream ss;
 "cond" { return COND; }
 "if" { return IF; }
 "else" { return ELSE; }
+
+"#f" | "#t" { yylval.boolval = strcmp(yytext, "#t") == 0; return BOOL_LITERAL; }
+[0-9]+ { yylval.intval = atoi(yytext); return INT_LITERAL;}
+([0-9]*\.[0-9]+([eE][-+]?[0-9]+)?)  { yylval.fltval = atof(yytext); return REAL_LITERAL;}
+[a-zA-Z_]+[a-zA-Z0-9_]*     { yylval.strval = yytext; return ID; }
+
 \"                  { BEGIN strlit; ss.str(std::string()); }
 <strlit>[^\\"\n]*   { ss << yytext;}
 <strlit>\\n         { ss << '\n';}

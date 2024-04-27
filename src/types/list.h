@@ -17,11 +17,11 @@ public:
 
     // Create a list type.
     // elementType: What type the list holds
-    VarTypeList(std::unique_ptr<VarType> elementType) : elementType(std::move(returnType)) {}
+    VarTypeList(std::unique_ptr<VarType> elementType) : elementType(std::move(elementType)) {}
 
     // Virtual functions. See base class for details.
     virtual std::unique_ptr<VarType> Copy() override;
     virtual llvm::Type* GetLLVMType(llvm::LLVMContext& ctx) override;
     virtual bool Equals(VarType* other) override;
 
-}
+};

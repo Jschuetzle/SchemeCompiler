@@ -1,19 +1,20 @@
 #include "variable.h"
 #include "function.h"
+#include "../ast.h"
 
 //note that the 'func' param has default value nullptr. This is because of the default value that is provided in the virtual method in the ASTExpression class
-std::unique_ptr<VarType> ASTExpressionVariable::ReturnType(ASTFunction& func)
+std::unique_ptr<VarType> ASTExpressionVariable::ReturnType(ASTFunction* func)
 {
     //func will be null if the variable resides in the global scope
     if(!func)
        return ast.scopeTable.GetVariableType(var)->Copy();
     else
-        return func.GetVariableType(var)->Copy(); // We just need to resolve the variable and copy its type.
+        return func->GetVariableType(var)->Copy(); // We just need to resolve the variable and copy its type.
 }
 
 
 //currently, I don't where this function is used and how to implement it
-bool ASTExpressionVariable::IsLValue(ASTFunction& func)
+bool ASTExpressionVariable::IsLValue(ASTFunction* func)
 {
     auto retType = ReturnType(func);
     return !dynamic_cast<VarTypeFunction*>(retType.get());
@@ -22,12 +23,12 @@ bool ASTExpressionVariable::IsLValue(ASTFunction& func)
 }
 
 
-llvm::Value* ASTExpressionVariable::Compile(llvm::IRBuilder<>& builder, ASTFunction& func)
+llvm::Value* ASTExpressionVariable::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
 {
     if(!func)
-        return ast.scopeTable.getVariableValue(var);
+        return ast.scopeTable.GetVariableValue(var);
     else
-       return func.getVariableType(var);
+       return func->GetVariableValue(var);
 }
 
 std::string ASTExpressionVariable::ToString(const std::string& prefix)

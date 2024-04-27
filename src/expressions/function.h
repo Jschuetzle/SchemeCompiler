@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../expression.h"
 #include "../scopeTable.h"
 #include "../types/function.h"
 #include "../varType.h"
@@ -48,7 +49,7 @@ public:
     // returnType: The type of variable the function will return.
     // parameters: Collection of variable types and names to pass to the function call.
     // variadic: If the function is a variadic function.
-    ASTFunction(AST& ast, const std::string& name, std::unique_ptr<VarType> returnType, ASTFunctionParameters parameters, bool variadic = false);
+    explicit ASTFunction(AST& ast, const std::string& name, std::unique_ptr<VarType> returnType, ASTFunctionParameters parameters);
 
     // Add a new stack variable to the function's scope table. Don't add function parameters, those are already added.
     // var: Variable declaration to add to the stack.
@@ -71,7 +72,7 @@ public:
 
     // Give the function a definition! This is necessary if the function is not linked to when compiling (as in its our own function creation).
     // definition: Function definition, which is just a statement.
-    void Define(std::unique_ptr<ASTStatement> definition);
+    void Define(std::unique_ptr<ASTExpression> definition);
 
     // Get a string representation of this function.
     // prefix: the prefix of this node's children. This string has length 3 * the depth of this node.
