@@ -548,9 +548,9 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    86,    86,    88,    88,    98,    98,   100,   102,   104,
-     106,   108,   112,   113,   139,   139,   149,   152,   155,   163,
-     163,   164,   164
+       0,    86,    86,    88,    88,    98,    98,   102,   104,   106,
+     108,   110,   114,   115,   141,   141,   151,   154,   157,   165,
+     165,   166,   166
 };
 #endif
 
@@ -1417,92 +1417,100 @@ yyreduce:
 #line 1418 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
-  case 7: /* type: BOOL_TYPE  */
-#line 100 "src/frontend/parser.y"
-                {
-  (yyval.type) = new VarTypeSimple(VarTypeSimple::BoolType);
+  case 6: /* exprList: expr exprList  */
+#line 98 "src/frontend/parser.y"
+                          {
+    auto e = ast.AddExpressionCall(std::unique_ptr<ASTExpression>((yyvsp[-1].exp)));       
 }
 #line 1426 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
-  case 8: /* type: INT_TYPE  */
+  case 7: /* type: BOOL_TYPE  */
 #line 102 "src/frontend/parser.y"
-            {
-  (yyval.type) = new VarTypeSimple(VarTypeSimple::IntType);
+                {
+  (yyval.type) = new VarTypeSimple(VarTypeSimple::BoolType);
 }
 #line 1434 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
-  case 9: /* type: REAL_TYPE  */
+  case 8: /* type: INT_TYPE  */
 #line 104 "src/frontend/parser.y"
-             {
-  (yyval.type) = new VarTypeSimple(VarTypeSimple::RealType);
+            {
+  (yyval.type) = new VarTypeSimple(VarTypeSimple::IntType);
 }
 #line 1442 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
-  case 10: /* type: STRING_TYPE  */
+  case 9: /* type: REAL_TYPE  */
 #line 106 "src/frontend/parser.y"
-               {
-  (yyval.type) = new VarTypeSimple(VarTypeSimple::StringType);
+             {
+  (yyval.type) = new VarTypeSimple(VarTypeSimple::RealType);
 }
 #line 1450 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
-  case 11: /* type: LIST_TYPE RELOP_LT type RELOP_GT  */
+  case 10: /* type: STRING_TYPE  */
 #line 108 "src/frontend/parser.y"
-                                     {
-  (yyval.type) = new VarTypeList(std::unique_ptr<VarType>((yyvsp[-1].type)));
+               {
+  (yyval.type) = new VarTypeSimple(VarTypeSimple::StringType);
 }
 #line 1458 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
-  case 13: /* expr: LPAREN LAMBDA type LPAREN paramList RPAREN expr RPAREN  */
-#line 113 "src/frontend/parser.y"
-                                                             {
-        (yyval.exp) = (yyvsp[-1].exp);
-    }
+  case 11: /* type: LIST_TYPE RELOP_LT type RELOP_GT  */
+#line 110 "src/frontend/parser.y"
+                                     {
+  (yyval.type) = new VarTypeList(std::unique_ptr<VarType>((yyvsp[-1].type)));
+}
 #line 1466 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
-  case 16: /* datum: intLit  */
-#line 149 "src/frontend/parser.y"
-           {
-        (yyval.exp) = new ASTExpressionInt(ast, (yyvsp[0].intval));
+  case 13: /* expr: LPAREN LAMBDA type LPAREN paramList RPAREN expr RPAREN  */
+#line 115 "src/frontend/parser.y"
+                                                             {
+        (yyval.exp) = (yyvsp[-1].exp);
     }
 #line 1474 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
-  case 17: /* datum: realLit  */
-#line 152 "src/frontend/parser.y"
-            {
-        (yyval.exp) = new ASTExpressionReal(ast, (yyvsp[0].fltval));
+  case 16: /* datum: intLit  */
+#line 151 "src/frontend/parser.y"
+           {
+        (yyval.exp) = new ASTExpressionInt(ast, (yyvsp[0].intval));
     }
 #line 1482 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
-  case 18: /* datum: ID  */
-#line 155 "src/frontend/parser.y"
-       {
-        (yyval.exp) = new ASTExpressionVariable(ast, (yyvsp[0].strval));
+  case 17: /* datum: realLit  */
+#line 154 "src/frontend/parser.y"
+            {
+        (yyval.exp) = new ASTExpressionReal(ast, (yyvsp[0].fltval));
     }
 #line 1490 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
+  case 18: /* datum: ID  */
+#line 157 "src/frontend/parser.y"
+       {
+        (yyval.exp) = new ASTExpressionVariable(ast, (yyvsp[0].strval));
+    }
+#line 1498 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
+    break;
+
   case 20: /* intLit: ARITH_MINUS INT_LITERAL  */
-#line 163 "src/frontend/parser.y"
+#line 165 "src/frontend/parser.y"
                                               {(yyval.intval) = -1 * (yyvsp[0].intval);}
-#line 1496 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
+#line 1504 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
   case 22: /* realLit: ARITH_MINUS REAL_LITERAL  */
-#line 164 "src/frontend/parser.y"
+#line 166 "src/frontend/parser.y"
                                                  {(yyval.fltval) = -1 * (yyvsp[0].fltval);}
-#line 1502 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
+#line 1510 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
     break;
 
 
-#line 1506 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
+#line 1514 "/home/jschuetzle/school/compilers/SchemeCompiler/build/parser.tab.cc"
 
       default: break;
     }
@@ -1726,7 +1734,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 171 "src/frontend/parser.y"
+#line 173 "src/frontend/parser.y"
 
 int main(int argc, char **argv) {
 

@@ -95,7 +95,9 @@ globalDefList: | globalDefList LPAREN DEFINE ID expr RPAREN {
     //this is all that needs to be done i think...check funDef in PG4 for comparison
 } ;
 
-exprList: | expr exprList  ;
+exprList: | expr exprList {
+    auto e = ast.AddExpressionCall(std::unique_ptr<ASTExpression>($1));       
+} ;
 
 type: BOOL_TYPE {
   $$ = new VarTypeSimple(VarTypeSimple::BoolType);
