@@ -114,7 +114,10 @@ type: BOOL_TYPE {
 expr: datum 
     | LPAREN LAMBDA type LPAREN paramList RPAREN expr RPAREN {
         $$ = $7;
-    }  ;
+    }  | LPAREN LOGICAL_AND expr expr RPAREN {
+         
+    }
+
     /*
     | LPAREN ID exprList RPAREN
     | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN 
