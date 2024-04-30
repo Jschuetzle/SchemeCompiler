@@ -4,19 +4,8 @@ std::unique_ptr<VarType> ASTExpressionAddition::ReturnType(ASTFunction* func)
 {
     if (!returnType) // If the return type has not been gotten yet.
     {
-        auto r1 = a1->ReturnType(func);
-        auto r2 = a2->ReturnType(func);
-        // check they are the same type
-        if (!(r1.get()->Equals(r2.get())))
-            throw std::runtime_error("ERROR: Type mismatch on ADDITION expression.");
-        
-        // set return type
-        if (r1->Equals(&VarTypeSimple::IntType))
-            returnType = &VarTypeSimple::IntType;
-        else if (r1->Equals(&VarTypeSimple::RealType))
-            returnType = &VarTypeSimple::RealType;
-        else
-            throw std::runtime_error("ERROR: Must use numbers in ADDITION expression.");
+        if (!(ASTExpression::CoerceMathTypes(func, a1, a2, returnType)))
+            throw std::runtime_error("ERROR: Can not coerce types in addition expression! Are they both either ints or reals?");
     }
     return std::make_unique<VarTypeSimple>(*returnType); // Make a copy of our return type :}
 }

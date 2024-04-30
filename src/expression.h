@@ -59,6 +59,14 @@ public:
     // Returns: An LLVM value. Can be null if void is returned.
     llvm::Value* CompileRValue(llvm::IRBuilder<>& builder, ASTFunction* func = nullptr);
 
+    // Coerce math types.
+    // As of now it does not coerce types, but only checks if they are the same.
+    // func: Function that contains this expression.
+    // a1: Reference to the first expression operand.
+    // a2: Reference to the second expression operand.
+    // outCoercedType: Where to output the type.
+    // Returns: If types are the same and numbers.
+    static bool CoerceMathTypes(ASTFunction* func, std::unique_ptr<ASTExpression>& a1, std::unique_ptr<ASTExpression>& a2, VarTypeSimple*& outCoercedType);
 
     // DO NOT CALL THIS FROM EXPRESSION SUBCLASSES! THERE'S A GOOD CHANCE IT WON'T DO WHAT YOU WANT IT TO!
     void Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func);
