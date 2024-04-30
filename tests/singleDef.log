@@ -1,9 +1,0 @@
--- Configuring done
--- Generating done
--- Build files have been written to: /home/jschuetzle/school/compilers/SchemeCompiler/build
-Consolidate compiler generated dependencies of target LLVM-Lab
-[100%] Built target LLVM-Lab
-INFO: Compiling binding a.
-TestMod
-└──5
-
