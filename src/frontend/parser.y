@@ -13,7 +13,7 @@
 	#include "../src/expressions/real.h"
 	//#include "../src/expressions/string.h"
 	#include "../src/expressions/variable.h"
-	//#include "../src/expressions/addition.h"
+	#include "../src/expressions/addition.h"
 	//#include "../src/expressions/sub.h"
 	//#include "../src/expressions/multiplication.h"
 	//#include "../src/expressions/division.h"
@@ -114,7 +114,7 @@ type: BOOL_TYPE {
 expr: datum 
     | LPAREN LAMBDA type LPAREN paramList RPAREN expr RPAREN {
         $$ = $7;
-    }  | LPAREN LOGICAL_AND expr expr RPAREN {
+    // }  | LPAREN LOGICAL_AND expr expr RPAREN {
          
     }
 
@@ -126,9 +126,15 @@ expr: datum
     | LPAREN COND caseList LPAREN ELSE expr RPAREN RPAREN
     | LPAREN LOGICAL_AND exprList expr RPAREN
     | LPAREN LOGICAL_OR exprList expr RPAREN
-    | LPAREN LOGICAL_NOT expr RPAREN
-    | LPAREN binaryMathOp expr expr RPAREN
-    | LPAREN ARITH_MINUS expr RPAREN
+    | LPAREN LOGICAL_NOT expr RPAREN */
+    | LPAREN ARITH_PLUS expr expr RPAREN {
+      $$ = new ASTExpressionAddition(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
+    }; /*
+    | LPAREN ARITH_MINUS expr expr RPAREN
+    | LPAREN ARITH_MULT expr expr RPAREN
+    | LPAREN ARITH_DIV expr expr RPAREN
+    | LPAREN ARITH_REMAINDER expr expr RPAREN
+    | LPAREN ARITH_MINUS expr RPAREN //unary minus 
     | LPAREN CONS expr expr RPAREN
     | LPAREN CAR expr RPAREN
     | LPAREN CDR expr RPAREN
@@ -170,7 +176,7 @@ realLit: REAL_LITERAL | ARITH_MINUS REAL_LITERAL {$$ = -1 * $2;};
 
 //list: APOSTROPHE LPAREN datumList RPAREN  ; 
 //relop: RELOP_LT | RELOP_LE | RELOP_GT | RELOP_GE | RELOP_EQ ;
-//binaryMathOp: ARITH_PLUS | ARITH_MINUS | ARITH_MULT | ARITH_DIV | ARITH_REMAINDER  ;
+binaryMathOp: ARITH_PLUS | ARITH_MINUS | ARITH_MULT | ARITH_DIV | ARITH_REMAINDER  ; 
 
 
 %%
