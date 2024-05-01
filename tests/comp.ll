@@ -6,3 +6,4 @@ source_filename = "TestMod"
 @c = external global i1, align 1
 @d = external global i1, align 1
 @e = external global i1, align 1
+@f = external global i1, align 1

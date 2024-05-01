@@ -13,7 +13,7 @@ bool ASTExpressionComparison::IsLValue(ASTFunction* func)
 llvm::Value* ASTExpressionComparison::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
 {
     VarTypeSimple* returnType;
-    if (!ASTExpression::CoerceMathTypes(func, a1, a2, returnType)) // This will force our arguments to be the same type and outputs which one it is.
+    if (!ASTExpression::CoerceTypes(ast, func, a1, a2, returnType)) // This will force our arguments to be the same type and outputs which one it is.
             throw std::runtime_error("ERROR: Can not coerce types in comparison expression! Are they all booleans, ints, and floats?");
 
     // Get values. Operations only work on R-Values.

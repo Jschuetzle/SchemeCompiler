@@ -4,7 +4,7 @@ std::unique_ptr<VarType> ASTExpressionAddition::ReturnType(ASTFunction* func)
 {
     if (!returnType) // If the return type has not been gotten yet.
     {
-        if (!(ASTExpression::CoerceMathTypes(func, a1, a2, returnType)))
+        if (!(ASTExpression::CoerceMathTypes(ast, func, a1, a2, returnType)))
             throw std::runtime_error("ERROR: Can not coerce types in addition expression! Are they both either ints or reals?");
     }
     return std::make_unique<VarTypeSimple>(*returnType); // Make a copy of our return type :}
