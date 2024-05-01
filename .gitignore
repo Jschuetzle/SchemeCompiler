@@ -1,3 +1,5 @@
 CMakeLists.txt
 /build
 *.log
+*.swp
+/bin
