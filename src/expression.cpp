@@ -1,6 +1,7 @@
 #include "expression.h"
 #include "ast.h"
 #include "expressions/bool2Int.h"
+#include "expressions/int2Float.h"
 
 
 llvm::Value* ASTExpression::CompileRValue(llvm::IRBuilder<>& builder, ASTFunction* func)
@@ -24,24 +25,52 @@ void ASTExpression::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFu
 
 }
 
-bool ASTExpression::CoerceMathTypes(ASTFunction* func, std::unique_ptr<ASTExpression>& a1, std::unique_ptr<ASTExpression>& a2, VarTypeSimple*& outCoercedType) 
+bool ASTExpression::CoerceMathTypes(AST& ast, ASTFunction* func, std::unique_ptr<ASTExpression>& a1, std::unique_ptr<ASTExpression>& a2, VarTypeSimple*& outCoercedType) 
 {
     // Gather return types
     auto r1 = a1->ReturnType(func);
     auto r2 = a2->ReturnType(func);
 
-    // Check that r1 and r2 are the same
-    if (!(r1.get()->Equals(r2.get())))
-        return false;
-    
-    // Check the r1 and r2 are numbers and set return type
-    if (r1->Equals(&VarTypeSimple::IntType))
-        outCoercedType = &VarTypeSimple::IntType;
-    else if (r1->Equals(&VarTypeSimple::RealType))
-        outCoercedType = &VarTypeSimple::RealType;
+    // Make sure r1 is either a float or an int
+    bool r1Float = r1->Equals(&VarTypeSimple::RealType);
+    if (!(r1Float) && !(r1->Equals(&VarTypeSimple::IntType))) return false;
+
+    // Make sure r2 is either a float or an int
+    bool r2Float = r2->Equals(&VarTypeSimple::RealType);
+    if (!(r2Float) && !(r2->Equals(&VarTypeSimple::IntType))) return false;
+
+    // Do casting as needed
+    if (r1Float)
+    {
+        // both are floats, no conversion needed
+        if (r2Float)
+        {
+            outCoercedType = &VarTypeSimple::RealType;
+        }
+        // cast r2 to a float
+        else
+        {
+            outCoercedType = &VarTypeSimple::RealType;
+            auto tmp = std::move(a2);
+            a2 = std::make_unique<ASTExpressionInt2Float>(ast, std::move(tmp));
+        }
+    }
     else
-        return false;
-    
+    {
+        // Cast r1 to float
+        if (r2Float)
+        {
+            outCoercedType = &VarTypeSimple::RealType;
+            auto tmp = std::move(a1);
+            a1 = std::make_unique<ASTExpressionInt2Float>(ast, std::move(tmp));
+        }
+        // both are ints, no casting needed
+        else
+        {
+            outCoercedType = &VarTypeSimple::IntType;
+        }
+    }
+
     return true;
 }
 
@@ -60,5 +89,5 @@ bool ASTExpression::CoerceTypes(AST& ast, ASTFunction* func, std::unique_ptr<AST
         a2 = std::make_unique<ASTExpressionBool2Int>(ast, std::move(tmp));
     }
 
-    return CoerceMathTypes(func, a1, a2, outCoercedType);
+    return CoerceMathTypes(ast, func, a1, a2, outCoercedType);
 }

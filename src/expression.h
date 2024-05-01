@@ -66,7 +66,7 @@ public:
     // a2: Reference to the second expression operand.
     // outCoercedType: Where to output the type.
     // Returns: If types are the same and numbers.
-    static bool CoerceMathTypes(ASTFunction* func, std::unique_ptr<ASTExpression>& a1, std::unique_ptr<ASTExpression>& a2, VarTypeSimple*& outCoercedType);
+    static bool CoerceMathTypes(AST& ast, ASTFunction* func, std::unique_ptr<ASTExpression>& a1, std::unique_ptr<ASTExpression>& a2, VarTypeSimple*& outCoercedType);
 
     // Coerce types including bool to int
     static bool CoerceTypes(AST& ast, ASTFunction* func, std::unique_ptr<ASTExpression>& a1, std::unique_ptr<ASTExpression>& a2, VarTypeSimple*& outCoercedType);

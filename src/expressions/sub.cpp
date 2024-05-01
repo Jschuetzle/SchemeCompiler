@@ -4,7 +4,7 @@ std::unique_ptr<VarType> ASTExpressionSubtraction::ReturnType(ASTFunction* func)
 {
     if (!returnType) // If the return type has not been gotten yet.
     {
-        if (!ASTExpression::CoerceMathTypes(func, s1, s2, returnType)) // This will force our arguments to be the same type and outputs which one it is.
+        if (!ASTExpression::CoerceMathTypes(ast, func, s1, s2, returnType)) // This will force our arguments to be the same type and outputs which one it is.
             throw std::runtime_error("ERROR: Can not coerce types in subtraction expression! Are they both either ints or floats?");
     }
     return std::make_unique<VarTypeSimple>(*returnType); // Make a copy of our return type.
