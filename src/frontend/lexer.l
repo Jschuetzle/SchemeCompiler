@@ -50,7 +50,7 @@ static std::stringstream ss;
 "if" { return IF; }
 "else" { return ELSE; }
 
-"#f" | "#t" { yylval.boolval = strcmp(yytext, "#t") == 0; return BOOL_LITERAL; }
+"true"|"false" { yylval.boolval = strcmp(yytext, "true") == 0; return BOOL_LITERAL; }
 [0-9]+ { yylval.intval = atoi(yytext); return INT_LITERAL;}
 ([0-9]*\.[0-9]+([eE][-+]?[0-9]+)?)  { yylval.fltval = atof(yytext); return REAL_LITERAL;}
 \"                  { BEGIN strlit; ss.str(std::string()); }

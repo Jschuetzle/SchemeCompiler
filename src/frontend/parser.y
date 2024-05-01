@@ -11,6 +11,7 @@
 	//#include "../src/expressions/call.h"
 	#include "../src/expressions/int.h"
 	#include "../src/expressions/real.h"
+    #include "../src/expressions/bool.h"
 	//#include "../src/expressions/string.h"
 	#include "../src/expressions/variable.h"
 	#include "../src/expressions/addition.h"
@@ -21,8 +22,9 @@
   #include "../src/expressions/negative.h"
 	//#include "../src/expressions/assignment.h"
 	#include "../src/expressions/comparison.h"
-	//#include "../src/expressions/and.h"
-	//#include "../src/expressions/or.h"
+	#include "../src/expressions/and.h"
+	#include "../src/expressions/or.h"
+    #include "../src/expressions/not.h"
 	//#include "../src/expressions/if.h"
 	#include "../src/types/simple.h"
     #include "../src/types/list.h"
@@ -90,11 +92,7 @@ program: globalDefList exprList ;
 globalDefList: | globalDefList LPAREN DEFINE ID expr RPAREN {
     //this will essentially just add the name and the expr to the varList and varMap fields in AST
     //we don't need to worry about adding to scopeTable just yet...that will happen when we compile expressions in AST.compile 
-    
-
-    auto v = ast.AddGlobalVariable($4, std::unique_ptr<ASTExpression>($5));
-     
-    //this is all that needs to be done i think...check funDef in PG4 for comparison
+    auto v = ast.AddGlobalVariable($4, std::unique_ptr<ASTExpression>($5));     
 } ;
 
 exprList: | expr exprList {
@@ -116,9 +114,15 @@ type: BOOL_TYPE {
 expr: datum 
     | LPAREN LAMBDA type LPAREN paramList RPAREN expr RPAREN {
         $$ = $7;
-    // }  | LPAREN LOGICAL_AND expr expr RPAREN {
-         
+    }  | LPAREN LOGICAL_AND expr expr RPAREN {
+        $$ = new ASTExpressionAnd(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
+    } | LPAREN LOGICAL_OR expr expr RPAREN {
+        $$ = new ASTExpressionOr(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
+    }  | LPAREN LOGICAL_NOT expr RPAREN {
+        $$ = new ASTExpressionNot(ast, std::unique_ptr<ASTExpression>($3));
     }
+
+
 
     /*
     | LPAREN ID exprList RPAREN
@@ -179,10 +183,13 @@ datum:
     }
   | ID {
         $$ = new ASTExpressionVariable(ast, $1);
+    }
+  | BOOL_LITERAL {
+        $$ = new ASTExpressionBool(ast, $1);
     };
 
     /*
-  | BOOL_LITERAL | STRING_LITERAL | list  ;
+  | STRING_LITERAL | list  ;
     */
 
 intLit: INT_LITERAL | ARITH_MINUS INT_LITERAL {$$ = -1 * $2;};
@@ -201,6 +208,7 @@ relop: RELOP_LT {
   $$ = ASTExpressionComparisonType::Equal;
 };
 //binaryMathOp: ARITH_PLUS | ARITH_MINUS | ARITH_MULT | ARITH_DIV | ARITH_REMAINDER  ; // probably useless
+//relop: RELOP_LT | RELOP_LE | RELOP_GT | RELOP_GE | RELOP_EQ ;
 
 
 %%

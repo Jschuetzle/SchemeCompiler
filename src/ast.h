@@ -66,8 +66,14 @@ public:
     // Compile the AST. This must be done before exporting any object files
     void Compile();
 
+    // Returns llvm global variable constant that is added to module
+    llvm::GlobalVariable* CreateGlobalConstant(std::string name, std::unique_ptr<VarType>, llvm::Type* llvmtype = nullptr);
+
     // Get a string representation of the AST.
     std::string ToString();
+
+    //helper method for ToString. Creates the string of a binding
+    std::string bindingString(std::string name, std::unique_ptr<ASTExpression> expr, bool end);
 
     // Write LLVM assembly (.ll) to file. Must be done after compilation.
     // outFile: Where to write the .ll file.
