@@ -1,4 +1,5 @@
 #include "int.h"
+#include <iostream>
 
 std::unique_ptr<VarType> ASTExpressionInt::ReturnType(ASTFunction* func)
 {

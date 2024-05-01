@@ -24,7 +24,7 @@ class ASTFunction : ASTExpression
 private:
 
     // List of all the parameters.
-    std::vector<std::string> parameters;
+    std::vector<std::string> param_names;
 
     // List of all local variables (stored on the stack)
     std::vector<std::string> localVariables;
@@ -49,7 +49,7 @@ public:
     // returnType: The type of variable the function will return.
     // parameters: Collection of variable types and names to pass to the function call.
     // variadic: If the function is a variadic function.
-    explicit ASTFunction(AST& ast, const std::string& name, std::unique_ptr<VarType> returnType, ASTFunctionParameters parameters);
+    explicit ASTFunction(AST& ast, std::unique_ptr<VarType> returnType, ASTFunctionParameters parameters);
 
     // Add a new stack variable to the function's scope table. Don't add function parameters, those are already added.
     // var: Variable declaration to add to the stack.

@@ -4,29 +4,30 @@
 #include "types/simple.h"
 #include <llvm/IR/Verifier.h>
 
-ASTFunction::ASTFunction(AST& ast, const std::string& name, std::unique_ptr<VarType> returnType, ASTFunctionParameters parameters) : ASTExpression(ast), name(name)
+ASTFunction::ASTFunction(AST& ast, std::unique_ptr<VarType> returnType, ASTFunctionParameters params) : ASTExpression(ast)
 {
 
     // Create the function type.
-    auto params = std::move(parameters);
     std::vector<std::unique_ptr<VarType>> paramTypes;
-    for (auto& param : params) // We must copy each type from the parameters.
+    for (auto& p : params) // We must copy each type from the parameters.
     {
-        paramTypes.push_back(std::get<0>(param)->Copy()); // This copies the first item of the tuple, which is a var type pointer.
+        paramTypes.push_back(std::get<0>(p)->Copy());
     }
     funcType = std::make_unique<VarTypeFunction>(std::move(returnType), std::move(paramTypes));
 
-    // Add to scope table, we need to error if it already exists.
+    // This was here in PG4, but shouldn't be needed here because functions are anonymous
+    /*
     if (!ast.scopeTable.AddVariable(name, funcType->Copy()))
     {
         throw std::runtime_error("ERROR: Function or global variable with name " + name + " already exists.");
     }
+    */
 
     // Add parameters as stack variables. It's ok for us to do it since we are the ones setting up the parameters for stack variables.
-    for (auto& param : params)
+    for (auto& p : params)
     {
-        this->parameters.push_back(std::get<1>(param));
-        AddStackVar(std::move(param));
+        this->param_names.push_back(std::get<1>(p));
+        AddStackVar(std::move(p));
     }
 
 }
@@ -37,7 +38,7 @@ void ASTFunction::AddStackVar(ASTFunctionParameter var)
     // Add variable to the scope table and error if it already exists.
     if (!scopeTable.AddVariable(std::get<1>(var), std::move(std::get<0>(var))))
     {
-        throw std::runtime_error("ERROR: Variable " + std::get<1>(var) + " is already defined in function " + name + "!");
+        throw std::runtime_error("ERROR: Variable " + std::get<1>(var) + " is already defined in function!");
     }
     localVariables.push_back(std::get<1>(var));
 
@@ -58,7 +59,7 @@ VarType* ASTFunction::GetVariableType(const std::string& name)
     {
         if (ret = ast.scopeTable.GetVariableType(name), !ret) // Continue only if AST scope table doesn't have value.
         {
-            throw std::runtime_error("ERROR: In function " + this->name + ", cannot resolve variable or function " + name + "!");
+            throw std::runtime_error("ERROR: In function,  cannot resolve variable or function " + name + "!");
         }
         else return ret;
     }
@@ -72,7 +73,7 @@ llvm::Value* ASTFunction::GetVariableValue(const std::string& name)
     {
         if (ret = ast.scopeTable.GetVariableValue(name), !ret) // Continue only if AST scope table doesn't have value.
         {
-            throw std::runtime_error("ERROR: In function " + this->name + ", cannot resolve variable or function " + name + "!");
+            throw std::runtime_error("ERROR: In function, cannot resolve variable or function " + name + "!");
         }
         else return ret;
     }
@@ -85,7 +86,7 @@ void ASTFunction::SetVariableValue(const std::string& name, llvm::Value* value)
     {
         if (!ast.scopeTable.SetVariableValue(name, value)) // Continue only if AST scope table doesn't have value.
         {
-            throw std::runtime_error("ERROR: In function " + this->name + ", cannot resolve variable or function " + name + "!");
+            throw std::runtime_error("ERROR: In function, cannot resolve variable or function " + name + "!");
         }
     }
 }
@@ -96,19 +97,21 @@ void ASTFunction::Define(std::unique_ptr<ASTExpression> definition)
     {
         this->definition = std::move(definition);
     }
-    else throw std::runtime_error("ERROR: Function " + name + " already has a definition!");
+    else throw std::runtime_error("ERROR: Function already has a definition!");
 }
 
 void ASTFunction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder)
 {
 
     // First, add a new function declaration to our scope.
-    auto func = llvm::Function::Create((llvm::FunctionType*)funcType->GetLLVMType(builder.getContext()), llvm::GlobalValue::LinkageTypes::ExternalLinkage, name, mod);
-    ast.scopeTable.SetVariableValue(name, func);
+    auto func = llvm::Function::Create((llvm::FunctionType*)funcType->GetLLVMType(builder.getContext()), llvm::GlobalValue::LinkageTypes::ExternalLinkage, "func", mod);
+
+    // need to think about how I'm going to add to a scope table if needed
+    //ast.scopeTable.SetVariableValue(name, func);
 
     // Set parameter names.
     unsigned idx = 0;
-    for (auto& arg : func->args()) arg.setName(parameters[idx++]);
+    for (auto& arg : func->args()) arg.setName(param_names[idx++]);
 
     // Only continue if the function has a definition.
     if (!definition) return;
@@ -149,7 +152,7 @@ void ASTFunction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder)
     if (retType) satisfiesType = retType->Equals(funcType->returnType.get()); // If we return something, make sure we return what is expected.
     if (!satisfiesType)
     {
-        throw std::runtime_error("ERROR: Function " + name + " has a return type mismatch error");
+        throw std::runtime_error("ERROR: Function has a return type mismatch error");
     }
 
     // Generate the function.
@@ -169,7 +172,7 @@ void ASTFunction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder)
 
 std::string ASTFunction::ToString(const std::string& prefix)
 {
-    std::string output = name + "\n";
+    std::string output = "lambda\n";
     output += prefix + "└──" + (definition == nullptr ? "nullptr\n" : definition->ToString(prefix + "   "));
     return output;
 }

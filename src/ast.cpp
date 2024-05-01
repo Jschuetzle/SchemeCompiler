@@ -71,8 +71,14 @@ void AST::Compile()
     {
         std::cout << "INFO: Compiling binding " + varName + "." << std::endl;
         globalVars[varName]->Compile(builder);
-    }
+        std::unique_ptr<VarType> type = globalVars[varName]->ReturnType()->Copy();
+        llvm::Type* llvmtype = type->GetLLVMType(context); 
+       
+        //need to add functionality for adding functions that are bound in define statements 
+        //only do this if the type is int, real, bool, char
 
+        AST::CreateGlobalConstant(varName, std::move(type), llvmtype);
+    }
     //Then, compile all the global expressions...expressions are nameless, so just put iter # inside string
     for (int i=0; i<globalExprs.size(); i++)
     {
@@ -83,29 +89,77 @@ void AST::Compile()
     compiled = true;
 }
 
+//creates an inserts a global variable into the llvm module
+llvm::GlobalVariable* AST::CreateGlobalConstant(std::string name, std::unique_ptr<VarType> type, llvm::Type* llvmtype) {
+    
+         
+    //takes in var name and var type
+    module.getOrInsertGlobal(name, llvmtype);
+
+    llvm::GlobalVariable* gVar = module.getNamedGlobal(name);
+
+    //used to be CommonLinkage...just a note here if anything messes up
+    gVar->setLinkage(llvm::GlobalValue::ExternalLinkage);
+
+    //set the alignment of the global based on the VarType
+    if(type->Equals(&VarTypeSimple::IntType) || type->Equals(&VarTypeSimple::RealType))
+        gVar->setAlignment(llvm::MaybeAlign(4));
+    else if(type->Equals(&VarTypeSimple::BoolType))
+        gVar->setAlignment(llvm::MaybeAlign(1));
+
+    return gVar;
+}
+
 std::string AST::ToString()
-{
+{ 
+    //print out all defintions 
     std::string output = module.getModuleIdentifier() + "\n";
-    for (int i = 0; i < globalVarList.size() - 1; i++)
-        output += "├──" + globalVars[globalVarList.at(i)]->ToString("│  ");
 
-    if(globalExprs.size() == 0){
-        output += "└──" + globalVars[globalVarList.back()]->ToString("   "); 
-    } else {
-        output += "├──" + globalVars[globalVarList.back()]->ToString("|  ");
-        for (int i=0; i<globalExprs.size() - 1; i++)
-           output += "├──" + globalExprs.at(i).get()->ToString("|  ");
+    std::string binding_name;
+    if(globalVarList.size() > 0){
+        for (int i = 0; i < globalVarList.size() - 1; i++){ 
+            binding_name = globalVarList.at(i);
+            output += AST::bindingString(binding_name, std::move(globalVars[binding_name]), false);
+        }
+   
+        //print out the final binding differently if there are no expressions following it
+        binding_name = globalVarList.at(globalVarList.size()-1); 
+        std::cout << "binding name " << binding_name << std::endl;
 
-        output += "└──" + globalExprs.back().get()->ToString("   ");  
+        if(!globalVars[binding_name]){
+                std::cout << "type bound to is null" << std::endl;
+        }
+        if(globalExprs.size() == 0){
+
+            output += AST::bindingString(binding_name, std::move(globalVars[binding_name]), true);
+        }
+    }
+
+    std::cout << "printing exprs"  << std::endl;
+
+    if(globalExprs.size() > 0){ 
+        for (int i=0; i<globalExprs.size() - 1; i++){
+           output += "├──return\n   ├──" + globalExprs.at(i).get()->ToString("|  ");
+        }
+
+        output += "└──return\n   └──" + globalExprs.back().get()->ToString("   ");  
     }
     return output;
 }
+
+std::string AST::bindingString(std::string name, std::unique_ptr<ASTExpression> expr, bool end){ 
+    std::string output = end ? "└───binding\n" : "├──binding\n";
+    output += "   ├──" + name + "\n   └──" + expr->ToString("│  ");
+    return output; 
+}
+
 
 void AST::WriteLLVMAssemblyToFile(const std::string& outFile)
 {
     if (!compiled) throw std::runtime_error("ERROR: Module " + std::string(module.getName().data()) + " not compiled!");
     if (outFile == "") throw std::runtime_error("ERROR: Writing assembly to standard out is not supported!");
     std::error_code err;
+ 
     llvm::raw_fd_ostream outLl(outFile, err);
     module.print(outLl, nullptr);
     outLl.close();
