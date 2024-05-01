@@ -1,6 +1,7 @@
 #pragma once
 
-#include "types/simple.h"  //is this correct?
+#include "types/simple.h"
+#include "types/list.h"
 #include "varType.h"
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/IRBuilder.h>

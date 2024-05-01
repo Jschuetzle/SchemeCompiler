@@ -1,26 +1,26 @@
 #pragma once
 
 #include "../expression.h"
-#include <iostream>
+#include "listNode.h"
 
-// An expression that is a constant int.
-class ASTExpressionInt : public ASTExpression
+// An expression that represents a linked list object
+class ASTExpressionList : public ASTExpression
 {
     // Constant int value.
-    int value;
+        std::unique_ptr<ASTExpressionListNode> head;
 
 public:
 
     // Create a new constant int expression.
     // val: Constant int value to create.
-    explicit ASTExpressionInt(AST& ast, int val) : ASTExpression(ast), value(val) {}
+    explicit ASTExpressionList(AST& ast, std::unique_ptr<ASTExpressionListNode> head) : ASTExpression(ast), head(std::move(head)) {}
 
 
     // Create a new constant int expression.
     // val: Constant int value to create.
-    static auto Create(AST& ast, int val)
+    static auto Create(AST& ast, std::unique_ptr<ASTExpressionListNode> head)
     {
-        return std::make_unique<ASTExpressionInt>(ast, val);
+        return std::make_unique<ASTExpressionList>(ast, std::move(head));
     }
 
     // Virtual functions. See base class for details.

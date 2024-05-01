@@ -13,13 +13,15 @@
 	#include "../src/expressions/real.h"
     #include "../src/expressions/bool.h"
 	//#include "../src/expressions/string.h"
+    #include "../src/expressions/list.h"
+    #include "../src/expressions/listNode.h"
 	#include "../src/expressions/variable.h"
 	#include "../src/expressions/addition.h"
 	#include "../src/expressions/sub.h"
 	#include "../src/expressions/multiplication.h"
 	#include "../src/expressions/division.h"
-  #include "../src/expressions/remainder.h"
-  #include "../src/expressions/negative.h"
+    #include "../src/expressions/remainder.h"
+    //#include "../src/expressions/negative.h"
 	//#include "../src/expressions/assignment.h"
 	#include "../src/expressions/comparison.h"
 	#include "../src/expressions/and.h"
@@ -57,7 +59,7 @@
   //ASTFunctionParameter *var;
   //std::vector<ASTFunctionParameter *> *vars;
   ASTExpression *exp;
-  std::vector<ASTExpression *> *exprVec;
+  ASTExpressionListNode *exprVec;
   VarType *type;
   ASTExpressionComparisonType rel;
 }
@@ -70,8 +72,8 @@
 %type <fltval> realLit REAL_LITERAL
 //%type <var> varDec
 //%type <vars> 
-%type <exp> expr datum 
-//%type <exprVec> args
+%type <exp> expr datum
+%type <exprVec> datumList
 %type <type> type
 %type <rel> relop
 
@@ -147,10 +149,10 @@ expr: datum
     }
     | LPAREN ARITH_REMAINDER expr expr RPAREN {
       $$ = new ASTExpressionRemainder(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
-    }
+    } /*
     | LPAREN ARITH_MINUS expr RPAREN {  //unary minus
       $$ = new ASTExpressionNegation(ast, std::unique_ptr<ASTExpression>($3));
-    } /*
+    }
     | LPAREN CONS expr expr RPAREN
     | LPAREN CAR expr RPAREN
     | LPAREN CDR expr RPAREN */
@@ -173,7 +175,15 @@ paramList: | paramList type ID  ;
 //caseList: | caseList LPAREN expr expr RPAREN  ;
 
 //Data types and operators
-//datumList: | datumList datum ; 
+datumList:
+    datum datumList {
+        $$ = new ASTExpressionListNode(ast, std::unique_ptr<ASTExpression>($1), std::unique_ptr<ASTExpressionListNode>($2));
+        
+    } |    {
+        $$ = nullptr;
+    };
+
+
 datum: 
     intLit {
         $$ = new ASTExpressionInt(ast, $1);
@@ -186,16 +196,19 @@ datum:
     }
   | BOOL_LITERAL {
         $$ = new ASTExpressionBool(ast, $1);
+    }
+  | APOSTROPHE LPAREN datumList RPAREN {
+        $$ = new ASTExpressionList(ast, std::unique_ptr<ASTExpressionListNode>($3));
     };
+ 
 
     /*
-  | STRING_LITERAL | list  ;
+  | STRING_LITERAL ;
     */
 
 intLit: INT_LITERAL | ARITH_MINUS INT_LITERAL {$$ = -1 * $2;};
 realLit: REAL_LITERAL | ARITH_MINUS REAL_LITERAL {$$ = -1 * $2;};
 
-//list: APOSTROPHE LPAREN datumList RPAREN  ; 
 relop: RELOP_LT {
   $$ = ASTExpressionComparisonType::LessThan;
 } | RELOP_LE {
