@@ -68,6 +68,9 @@ public:
     // Returns: If types are the same and numbers.
     static bool CoerceMathTypes(ASTFunction* func, std::unique_ptr<ASTExpression>& a1, std::unique_ptr<ASTExpression>& a2, VarTypeSimple*& outCoercedType);
 
+    // Coerce types including bool to int
+    static bool CoerceTypes(AST& ast, ASTFunction* func, std::unique_ptr<ASTExpression>& a1, std::unique_ptr<ASTExpression>& a2, VarTypeSimple*& outCoercedType);
+
     // DO NOT CALL THIS FROM EXPRESSION SUBCLASSES! THERE'S A GOOD CHANCE IT WON'T DO WHAT YOU WANT IT TO!
     void Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func);
 };

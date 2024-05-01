@@ -1,5 +1,6 @@
 #include "expression.h"
 #include "ast.h"
+#include "expressions/bool2Int.h"
 
 
 llvm::Value* ASTExpression::CompileRValue(llvm::IRBuilder<>& builder, ASTFunction* func)
@@ -42,4 +43,22 @@ bool ASTExpression::CoerceMathTypes(ASTFunction* func, std::unique_ptr<ASTExpres
         return false;
     
     return true;
+}
+
+bool ASTExpression::CoerceTypes(AST& ast, ASTFunction* func, std::unique_ptr<ASTExpression>& a1, std::unique_ptr<ASTExpression>& a2, VarTypeSimple*& outCoercedType)
+{
+    // just convert bool to int and call convert math types
+    if (a1->ReturnType(func)->Equals(&VarTypeSimple::BoolType))
+    {
+        auto tmp = std::move(a1);
+        a1 = std::make_unique<ASTExpressionBool2Int>(ast, std::move(tmp));
+    }
+
+    if (a2->ReturnType(func)->Equals(&VarTypeSimple::BoolType))
+    {
+        auto tmp = std::move(a2);
+        a2 = std::make_unique<ASTExpressionBool2Int>(ast, std::move(tmp));
+    }
+
+    return CoerceMathTypes(func, a1, a2, outCoercedType);
 }
