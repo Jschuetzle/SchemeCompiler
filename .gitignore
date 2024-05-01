@@ -3,3 +3,4 @@ CMakeLists.txt
 *.log
 *.swp
 /bin
+.vscode
