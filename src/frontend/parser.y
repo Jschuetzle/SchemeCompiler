@@ -14,9 +14,10 @@
 	//#include "../src/expressions/string.h"
 	#include "../src/expressions/variable.h"
 	#include "../src/expressions/addition.h"
-	//#include "../src/expressions/sub.h"
-	//#include "../src/expressions/multiplication.h"
-	//#include "../src/expressions/division.h"
+	#include "../src/expressions/sub.h"
+	#include "../src/expressions/multiplication.h"
+	#include "../src/expressions/division.h"
+  #include "../src/expressions/remainder.h"
 	//#include "../src/expressions/assignment.h"
 	//#include "../src/expressions/comparison.h"
 	//#include "../src/expressions/and.h"
@@ -129,11 +130,19 @@ expr: datum
     | LPAREN LOGICAL_NOT expr RPAREN */
     | LPAREN ARITH_PLUS expr expr RPAREN {
       $$ = new ASTExpressionAddition(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
+    }
+    | LPAREN ARITH_MINUS expr expr RPAREN {
+      $$ = new ASTExpressionSubtraction(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
+    }
+    | LPAREN ARITH_MULT expr expr RPAREN {
+      $$ = new ASTExpressionMultiplication(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
+    }
+    | LPAREN ARITH_DIV expr expr RPAREN {
+      $$ = new ASTExpressionDivision(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
+    }
+    | LPAREN ARITH_REMAINDER expr expr RPAREN {
+      $$ = new ASTExpressionRemainder(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
     }; /*
-    | LPAREN ARITH_MINUS expr expr RPAREN
-    | LPAREN ARITH_MULT expr expr RPAREN
-    | LPAREN ARITH_DIV expr expr RPAREN
-    | LPAREN ARITH_REMAINDER expr expr RPAREN
     | LPAREN ARITH_MINUS expr RPAREN //unary minus 
     | LPAREN CONS expr expr RPAREN
     | LPAREN CAR expr RPAREN
@@ -176,7 +185,7 @@ realLit: REAL_LITERAL | ARITH_MINUS REAL_LITERAL {$$ = -1 * $2;};
 
 //list: APOSTROPHE LPAREN datumList RPAREN  ; 
 //relop: RELOP_LT | RELOP_LE | RELOP_GT | RELOP_GE | RELOP_EQ ;
-binaryMathOp: ARITH_PLUS | ARITH_MINUS | ARITH_MULT | ARITH_DIV | ARITH_REMAINDER  ; 
+/* binaryMathOp: ARITH_PLUS | ARITH_MINUS | ARITH_MULT | ARITH_DIV | ARITH_REMAINDER  ;  */
 
 
 %%

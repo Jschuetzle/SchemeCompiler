@@ -22,3 +22,24 @@ void ASTExpression::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFu
     Compile(builder, func);
 
 }
+
+bool ASTExpression::CoerceMathTypes(ASTFunction* func, std::unique_ptr<ASTExpression>& a1, std::unique_ptr<ASTExpression>& a2, VarTypeSimple*& outCoercedType) 
+{
+    // Gather return types
+    auto r1 = a1->ReturnType(func);
+    auto r2 = a2->ReturnType(func);
+
+    // Check that r1 and r2 are the same
+    if (!(r1.get()->Equals(r2.get())))
+        return false;
+    
+    // Check the r1 and r2 are numbers and set return type
+    if (r1->Equals(&VarTypeSimple::IntType))
+        outCoercedType = &VarTypeSimple::IntType;
+    else if (r1->Equals(&VarTypeSimple::RealType))
+        outCoercedType = &VarTypeSimple::RealType;
+    else
+        return false;
+    
+    return true;
+}
