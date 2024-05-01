@@ -19,8 +19,9 @@
 	#include "../src/expressions/multiplication.h"
 	#include "../src/expressions/division.h"
   #include "../src/expressions/remainder.h"
+  #include "../src/expressions/negative.h"
 	//#include "../src/expressions/assignment.h"
-	//#include "../src/expressions/comparison.h"
+	#include "../src/expressions/comparison.h"
 	#include "../src/expressions/and.h"
 	#include "../src/expressions/or.h"
     #include "../src/expressions/not.h"
@@ -58,7 +59,7 @@
   ASTExpression *exp;
   std::vector<ASTExpression *> *exprVec;
   VarType *type;
-  //ASTExpressionComparisonType rel;
+  ASTExpressionComparisonType rel;
 }
 
 %token LPAREN RPAREN INT_TYPE REAL_TYPE STRING_TYPE BOOL_TYPE LIST_TYPE APOSTROPHE BOOL_LITERAL INT_LITERAL REAL_LITERAL ID RELOP_GT RELOP_LT RELOP_GE RELOP_LE RELOP_EQ ARITH_PLUS ARITH_MINUS ARITH_MULT ARITH_DIV ARITH_REMAINDER NULL_CHECK_OP BOOL_CHECK_OP NUMBER_CHECK_OP REAL_CHECK_OP LIST_CHECK_OP LOGICAL_OR LOGICAL_AND LOGICAL_NOT DEFINE LET CAR CDR CONS LAMBDA COND IF ELSE STRING_LITERAL 
@@ -72,7 +73,7 @@
 %type <exp> expr datum 
 //%type <exprVec> args
 %type <type> type
-//%type <rel> relop
+%type <rel> relop
 
 %expect 0 // Shift/reduce conflict when resolving the if/else production; 
 
@@ -146,12 +147,16 @@ expr: datum
     }
     | LPAREN ARITH_REMAINDER expr expr RPAREN {
       $$ = new ASTExpressionRemainder(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
-    }; /*
-    | LPAREN ARITH_MINUS expr RPAREN //unary minus 
+    }
+    | LPAREN ARITH_MINUS expr RPAREN {  //unary minus
+      $$ = new ASTExpressionNegation(ast, std::unique_ptr<ASTExpression>($3));
+    } /*
     | LPAREN CONS expr expr RPAREN
     | LPAREN CAR expr RPAREN
-    | LPAREN CDR expr RPAREN
-    | LPAREN relop expr expr RPAREN
+    | LPAREN CDR expr RPAREN */
+    | LPAREN relop expr expr RPAREN {
+      $$ = new ASTExpressionComparison(ast, $2, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
+    }; /*
     | LPAREN NULL_CHECK_OP expr RPAREN
     | LPAREN BOOL_CHECK_OP expr RPAREN
     | LPAREN NUMBER_CHECK_OP expr RPAREN
@@ -191,6 +196,18 @@ intLit: INT_LITERAL | ARITH_MINUS INT_LITERAL {$$ = -1 * $2;};
 realLit: REAL_LITERAL | ARITH_MINUS REAL_LITERAL {$$ = -1 * $2;};
 
 //list: APOSTROPHE LPAREN datumList RPAREN  ; 
+relop: RELOP_LT {
+  $$ = ASTExpressionComparisonType::LessThan;
+} | RELOP_LE {
+  $$ = ASTExpressionComparisonType::LessThanOrEqual;
+} | RELOP_GT {
+  $$ = ASTExpressionComparisonType::GreaterThan;
+} | RELOP_GE {
+  $$ = ASTExpressionComparisonType::GreaterThanOrEqual;
+} | RELOP_EQ {
+  $$ = ASTExpressionComparisonType::Equal;
+};
+//binaryMathOp: ARITH_PLUS | ARITH_MINUS | ARITH_MULT | ARITH_DIV | ARITH_REMAINDER  ; // probably useless
 //relop: RELOP_LT | RELOP_LE | RELOP_GT | RELOP_GE | RELOP_EQ ;
 
 
