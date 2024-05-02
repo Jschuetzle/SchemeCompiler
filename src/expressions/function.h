@@ -73,13 +73,17 @@ public:
     // Give the function a definition! This is necessary if the function is not linked to when compiling (as in its our own function creation).
     // definition: Function definition, which is just a statement.
     void Define(std::unique_ptr<ASTExpression> definition);
-
-    // Get a string representation of this function.
-    // prefix: the prefix of this node's children. This string has length 3 * the depth of this node.
-    std::string ToString(const std::string& prefix);
-
+ 
     // Compile the function, needed during codegen phase to show LLVM our function exists.
     // mod: Module to add the function to.
     // builder: IR builder used to build instructions.
-    void Compile(llvm::Module& mod, llvm::IRBuilder<>& builder);
+    //void Compile(llvm::Module& mod, llvm::IRBuilder<>& builder);
+
+
+    
+    // Virtual functions. See base class for details.
+    std::unique_ptr<VarType> ReturnType(ASTFunction* func) override;
+    bool IsLValue(ASTFunction* func) override;
+    llvm::Value* Compile(llvm::IRBuilder<>& builder, ASTFunction* func) override;
+    std::string ToString(const std::string& prefix) override;
 };

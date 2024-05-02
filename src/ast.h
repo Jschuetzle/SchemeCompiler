@@ -1,6 +1,7 @@
 #pragma once
 
 #include "expression.h"
+#include "expressions/function.h"
 #include "scopeTable.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>
@@ -67,7 +68,7 @@ public:
     void Compile();
 
     // Returns llvm global variable constant that is added to module
-    llvm::GlobalVariable* CreateGlobalConstant(std::string name, std::unique_ptr<VarType>, llvm::Type* llvmtype = nullptr);
+    llvm::GlobalVariable* CreateGlobalConstant(std::string name, llvm::Type* llvmtype, llvm::Value* llvmvalue);
 
     // Get a string representation of the AST.
     std::string ToString();

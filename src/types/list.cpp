@@ -1,4 +1,5 @@
 #include "list.h"
+#include <iostream>
 
 #include <llvm/IR/DerivedTypes.h>
 
@@ -12,7 +13,8 @@ llvm::Type* VarTypeList::GetLLVMType(llvm::LLVMContext& ctx)
 {
     //if llvm defined listType is null, then define it
     if (!listType)
-    {
+    {   
+        std::cout << "creating llvm list type" << std::endl;
         llvm::Type* data = elementType->GetLLVMType(ctx);
         llvm::PointerType* next = llvm::PointerType::getUnqual(GetLLVMType(ctx));
         listType = llvm::StructType::get(ctx, {data, next}, false);

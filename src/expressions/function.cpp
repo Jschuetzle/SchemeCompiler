@@ -100,11 +100,11 @@ void ASTFunction::Define(std::unique_ptr<ASTExpression> definition)
     else throw std::runtime_error("ERROR: Function already has a definition!");
 }
 
-void ASTFunction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder)
+llvm::Value* ASTFunction::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
 {
-
+    /*
     // First, add a new function declaration to our scope.
-    auto func = llvm::Function::Create((llvm::FunctionType*)funcType->GetLLVMType(builder.getContext()), llvm::GlobalValue::LinkageTypes::ExternalLinkage, "func", mod);
+    auto func = llvm::Function::Create((llvm::FunctionType*) funcType->GetLLVMType(builder.getContext()), llvm::GlobalValue::LinkageTypes::ExternalLinkage, "main", ast.module);
 
     // need to think about how I'm going to add to a scope table if needed
     //ast.scopeTable.SetVariableValue(name, func);
@@ -120,7 +120,7 @@ void ASTFunction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder)
     llvm::BasicBlock* bb = llvm::BasicBlock::Create(builder.getContext(), "entry", func);
     builder.SetInsertPoint(bb);
 
-    /*
+    
         So there's a lot going on here and it needs a bit of explanation.
         In LLVM, registers can only be assigned once which is not what we want for mutable variables.
         In order to combat this, we allocate memory on the stack to an LLVM register (llvm::Value*).
@@ -130,7 +130,9 @@ void ASTFunction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder)
         Once we allocate memory on the stack for each stack variable, we must then store it to the scope table so we know where each variable "lives".
         Now that we did that, we can use our GetVariableValue and SetVariableValue functions to get the pointer to the variable, which we can load from or store to!
         Note that how the stored stack variables are pointers to a value is what makes us classify it as an L-Value!
-    */
+    
+
+    
     for (auto& localVar : localVariables)
     {
         scopeTable.SetVariableValue(
@@ -144,6 +146,8 @@ void ASTFunction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder)
     {
         builder.CreateStore(&arg, scopeTable.GetVariableValue(arg.getName().data())); // We are storing the argument into the pointer to the stack variable gotten by fetching it from the scope table.
     }
+
+    
 
     // Check the function body to make sure it returns what we expect it to.
     std::unique_ptr<VarType> retType = definition->ReturnType(this);
@@ -167,8 +171,18 @@ void ASTFunction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder)
     // Verify and optimize the function.
     llvm::verifyFunction(*func, &llvm::errs());
     ast.fpm.run(*func);
-
+    */
+    return nullptr;
 }
+
+std::unique_ptr<VarType> ASTFunction::ReturnType(ASTFunction* func){
+    return funcType->Copy();
+}
+
+bool ASTFunction::IsLValue(ASTFunction* func){
+    return false;
+}
+
 
 std::string ASTFunction::ToString(const std::string& prefix)
 {

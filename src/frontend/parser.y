@@ -12,7 +12,7 @@
 	#include "../src/expressions/int.h"
 	#include "../src/expressions/real.h"
     #include "../src/expressions/bool.h"
-	//#include "../src/expressions/string.h"
+	#include "../src/expressions/string.h"
     #include "../src/expressions/list.h"
     #include "../src/expressions/listNode.h"
 	#include "../src/expressions/variable.h"
@@ -89,7 +89,9 @@ treat everything as an expression (which is not desired since we want a distinct
 
 Therefore, the grammar must enforce that all binding syntax comes before expressions
 */
-program: globalDefList exprList ;
+program: globalDefList expr {
+    auto e = ast.AddExpressionCall(std::unique_ptr<ASTExpression>($2));       
+};
 
 globalDefList: | globalDefList LPAREN DEFINE ID expr RPAREN {
     //this will essentially just add the name and the expr to the varList and varMap fields in AST
@@ -97,9 +99,6 @@ globalDefList: | globalDefList LPAREN DEFINE ID expr RPAREN {
     auto v = ast.AddGlobalVariable($4, std::unique_ptr<ASTExpression>($5));     
 } ;
 
-exprList: | expr exprList {
-    auto e = ast.AddExpressionCall(std::unique_ptr<ASTExpression>($1));       
-} ;
 
 type: BOOL_TYPE {
   $$ = new VarTypeSimple(VarTypeSimple::BoolType);
@@ -132,9 +131,7 @@ expr: datum
     | LPAREN IF expr expr expr RPAREN  
     | LPAREN IF expr expr RPAREN  
     | LPAREN COND caseList LPAREN ELSE expr RPAREN RPAREN
-    | LPAREN LOGICAL_AND exprList expr RPAREN
-    | LPAREN LOGICAL_OR exprList expr RPAREN
-    | LPAREN LOGICAL_NOT expr RPAREN */
+    */    
     | LPAREN ARITH_PLUS expr expr RPAREN {
       $$ = new ASTExpressionAddition(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
     }
@@ -178,7 +175,6 @@ paramList: | paramList type ID  ;
 datumList:
     datum datumList {
         $$ = new ASTExpressionListNode(ast, std::unique_ptr<ASTExpression>($1), std::unique_ptr<ASTExpressionListNode>($2));
-        
     } |    {
         $$ = nullptr;
     };
@@ -197,9 +193,13 @@ datum:
   | BOOL_LITERAL {
         $$ = new ASTExpressionBool(ast, $1);
     }
-  | APOSTROPHE LPAREN datumList RPAREN {
-        $$ = new ASTExpressionList(ast, std::unique_ptr<ASTExpressionListNode>($3));
+  | LIST_TYPE RELOP_LT type RELOP_GT APOSTROPHE LPAREN datumList RPAREN {
+        $$ = new ASTExpressionList(ast, std::unique_ptr<VarType>($3), std::unique_ptr<ASTExpressionListNode>($7));
+    }
+  | STRING_LITERAL {
+        $$ = new ASTExpressionString(ast, $1);
     };
+
  
 
     /*

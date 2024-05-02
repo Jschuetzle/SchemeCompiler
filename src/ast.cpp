@@ -70,48 +70,99 @@ void AST::Compile()
     for (auto& varName : globalVarList)
     {
         std::cout << "INFO: Compiling binding " + varName + "." << std::endl;
-        globalVars[varName]->Compile(builder);
-        std::unique_ptr<VarType> type = globalVars[varName]->ReturnType()->Copy();
+        
+        //compile the expression associated with the binding
+        auto* value = globalVars[varName]->Compile(builder); 
+      
+         
+        std::unique_ptr<VarType> type = globalVars[varName]->ReturnType()->Copy(); 
         llvm::Type* llvmtype = type->GetLLVMType(context); 
+
        
         //need to add functionality for adding functions that are bound in define statements 
         //only do this if the type is int, real, bool, char
 
-        AST::CreateGlobalConstant(varName, std::move(type), llvmtype);
-    }
-    //Then, compile all the global expressions...expressions are nameless, so just put iter # inside string
-    for (int i=0; i<globalExprs.size(); i++)
-    {
-        std::cout << "INFO: Compiling expression " + i << std::endl;
-        globalExprs.at(i).get()->Compile(builder);
+        auto* gVar =  AST::CreateGlobalConstant(varName, llvmtype, value);
+
+        //builder.CreateStore()
     }
 
+    //Then, compile all the global expressions...expressions are nameless, so just put iter # inside string
+
+    std::vector<ASTFunctionParameter> emptyParams;
+    // Create the 'main' function and its entry point
+    auto* mainFunc = new ASTFunction(*this, VarTypeSimple::IntType.Copy(), std::move(emptyParams));
+
+    auto func = llvm::Function::Create((llvm::FunctionType*) mainFunc->funcType->GetLLVMType(context), llvm::GlobalValue::LinkageTypes::ExternalLinkage, "main", module);
+
+    llvm::BasicBlock* entry = llvm::BasicBlock::Create(context, "entry", func);
+    builder.SetInsertPoint(entry);
+
+    //need to create a stack variable to store our expression result into, otherwise the code will get optimized away.
+    if(globalExprs.size() != 0){
+        ASTExpression* e = globalExprs.at(0).get();
+        llvm::Value* val = e->Compile(builder, mainFunc);
+    
+        //need to create a stack variable to store our expression result into, otherwise the code will get optimized away. 
+        llvm::AllocaInst *exprResultAlloc;
+
+        if(e->ReturnType(mainFunc)->Copy()->Equals(&VarTypeSimple::IntType)){
+
+            exprResultAlloc = builder.CreateAlloca(llvm::Type::getInt32Ty(context), nullptr, "exprResult"); 
+            builder.CreateStore(val, exprResultAlloc);
+            
+            // Load the value from the stack
+            llvm::Value* loadedVal = builder.CreateLoad(exprResultAlloc->getAllocatedType(), exprResultAlloc, "loadedVal");
+
+            // Return the loaded value
+            builder.CreateRet(loadedVal);
+
+        } else if (e->ReturnType(mainFunc)->Copy()->Equals(&VarTypeSimple::RealType)){
+            exprResultAlloc = builder.CreateAlloca(llvm::Type::getDoubleTy(context), nullptr, "exprResult"); 
+            builder.CreateStore(val, exprResultAlloc);
+            // Load the double value from the stack
+            llvm::Value* loadedDouble = builder.CreateLoad(exprResultAlloc->getAllocatedType(), exprResultAlloc, "loadedDouble");
+            
+            // Cast the loaded double to an integer
+            llvm::Value* doubleToInt = builder.CreateFPToSI(loadedDouble, llvm::Type::getInt32Ty(context), "doubleToInt");
+            
+            // Return the casted integer value
+            builder.CreateRet(doubleToInt);
+
+        } else {
+            exprResultAlloc = builder.CreateAlloca(llvm::Type::getInt1Ty(context), nullptr, "exprResult");  
+            builder.CreateStore(val, exprResultAlloc);
+
+            // Load the boolean value from the stack
+            llvm::Value* loadedBool = builder.CreateLoad(exprResultAlloc->getAllocatedType(), exprResultAlloc, "loadedBool");
+            
+            // Cast the loaded boolean to an integer (ZExt - Zero Extension is typically used for boolean to integer)
+            llvm::Value* boolToInt = builder.CreateZExt(loadedBool, llvm::Type::getInt32Ty(context), "boolToInt");
+            
+            // Return the casted integer value
+            builder.CreateRet(boolToInt);
+        } 
+    }
+    
     compiled = true;
 }
 
 //creates an inserts a global variable into the llvm module
-llvm::GlobalVariable* AST::CreateGlobalConstant(std::string name, std::unique_ptr<VarType> type, llvm::Type* llvmtype) {
-    
-         
-    //takes in var name and var type
-    module.getOrInsertGlobal(name, llvmtype);
-
-    llvm::GlobalVariable* gVar = module.getNamedGlobal(name);
-
-    //used to be CommonLinkage...just a note here if anything messes up
-    gVar->setLinkage(llvm::GlobalValue::ExternalLinkage);
-
-    //set the alignment of the global based on the VarType
-    if(type->Equals(&VarTypeSimple::IntType) || type->Equals(&VarTypeSimple::RealType))
-        gVar->setAlignment(llvm::MaybeAlign(4));
-    else if(type->Equals(&VarTypeSimple::BoolType))
-        gVar->setAlignment(llvm::MaybeAlign(1));
-
-    return gVar;
+llvm::GlobalVariable* AST::CreateGlobalConstant(std::string name, llvm::Type* llvmtype, llvm::Value* llvmvalue) {
+    llvm::GlobalVariable* globalVar = new llvm::GlobalVariable(
+        module,
+        llvmtype,
+        true,
+        llvm::GlobalValue::ExternalLinkage,
+        (llvm::Constant*) llvmvalue,
+        name
+    );
+   return globalVar;
 }
 
 std::string AST::ToString()
-{ 
+{
+
     //print out all defintions 
     std::string output = module.getModuleIdentifier() + "\n";
 
@@ -139,17 +190,17 @@ std::string AST::ToString()
 
     if(globalExprs.size() > 0){ 
         for (int i=0; i<globalExprs.size() - 1; i++){
-           output += "├──return\n   ├──" + globalExprs.at(i).get()->ToString("|  ");
+           output += "├──return\n   ├──" + globalExprs.at(i).get()->ToString("      ");
         }
 
-        output += "└──return\n   └──" + globalExprs.back().get()->ToString("   ");  
+        output += "└──return\n   └──" + globalExprs.back().get()->ToString("      ");  
     }
     return output;
 }
 
 std::string AST::bindingString(std::string name, std::unique_ptr<ASTExpression> expr, bool end){ 
     std::string output = end ? "└───binding\n" : "├──binding\n";
-    output += "   ├──" + name + "\n   └──" + expr->ToString("│  ");
+    output += "   ├──" + name + "\n   └──" + expr->ToString("      ");
     return output; 
 }
 
