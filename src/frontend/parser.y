@@ -11,24 +11,25 @@
 	//#include "../src/expressions/call.h"
 	#include "../src/expressions/int.h"
 	#include "../src/expressions/real.h"
-    #include "../src/expressions/bool.h"
+  #include "../src/expressions/bool.h"
 	#include "../src/expressions/string.h"
-    #include "../src/expressions/list.h"
-    #include "../src/expressions/listNode.h"
+  #include "../src/expressions/list.h"
+  #include "../src/expressions/listNode.h"
 	#include "../src/expressions/variable.h"
 	#include "../src/expressions/addition.h"
 	#include "../src/expressions/sub.h"
 	#include "../src/expressions/multiplication.h"
 	#include "../src/expressions/division.h"
-    #include "../src/expressions/remainder.h"
-    #include "../src/expressions/negative.h"
+  #include "../src/expressions/remainder.h"
+  #include "../src/expressions/negative.h"
 	//#include "../src/expressions/assignment.h"
 	#include "../src/expressions/comparison.h"
 	#include "../src/expressions/and.h"
 	#include "../src/expressions/or.h"
-    #include "../src/expressions/not.h"
+  #include "../src/expressions/not.h"
 	//#include "../src/expressions/if.h"
-    #include "../src/expressions/check.h"
+  #include "../src/expressions/function.h"
+  #include "../src/expressions/check.h"
 	#include "../src/types/simple.h"
     #include "../src/types/list.h"
 	extern FILE *yyin; 
@@ -59,6 +60,8 @@
   struct node *nodeval;
   ASTExpression *exp;
   ASTExpressionListNode *exprVec;
+  ASTFunctionParameter *var;
+  std::vector<ASTFunctionParameter *> *vars;
   VarType *type;
   ASTExpressionComparisonType rel;
   ASTExpressionCheckType check;
@@ -72,6 +75,7 @@
 %type <fltval> realLit REAL_LITERAL
 %type <exp> expr datum
 %type <exprVec> datumList
+%type <vars> paramList
 %type <type> type
 %type <rel> relop
 %type <check> checkOp
@@ -94,8 +98,9 @@ program: globalDefList {
 
 globalDefList: | globalDefList LPAREN DEFINE ID expr RPAREN {
     //this will essentially just add the name and the expr to the varList and varMap fields in AST
-    //we don't need to worry about adding to scopeTable just yet...that will happen when we compile expressions in AST.compile 
-    auto v = ast.AddGlobalVariable($4, std::unique_ptr<ASTExpression>($5));     
+    //we don't need to worry about adding to scopeTable just yet...that will happen when we compile expressions in AST.compile
+    
+    auto v = ast.AddGlobalVariable($4, std::unique_ptr<ASTExpression>($5)); 
 } ;
 
 
@@ -116,13 +121,20 @@ type: BOOL_TYPE {
 // productions for all possible expressions
 expr: datum 
     // lambda expressions
-    /*
+    
     | LPAREN LAMBDA type LPAREN paramList RPAREN expr RPAREN {
-        $$ = $7;
+
+        auto parameters = ASTFunctionParameters();
+        for(auto p : *$5){
+            parameters.push_back(std::move(*p));
+        }
+        $$ = new ASTFunction(ast, std::unique_ptr<VarType>($3), std::move(parameters), std::unique_ptr<ASTExpression>($7));
     }
+    /*
     | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN {
         
-    }*/
+    }
+    */
     // boolean operations
     | LPAREN LOGICAL_AND expr expr RPAREN {
         $$ = new ASTExpressionAnd(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
@@ -183,9 +195,15 @@ expr: datum
    */ 
 
 //nonterminals inside production body for lambda expression
-//paramList: | paramList type ID  ;
-//bindList: | bind bindList  ;
-//bind: LPAREN ID expr RPAREN  ;
+paramList: paramList type ID {
+  $1->push_back(new ASTFunctionParameter(std::unique_ptr<VarType>($2), $3));
+  $$ = $1;
+} |     {
+  $$ = new std::vector<ASTFunctionParameter*>();
+};
+
+/* bindList: | bind bindList  ;
+bind: LPAREN ID expr RPAREN  ; */
 
 //used when binding pairs are needed in a let
 //caseList: | caseList LPAREN expr expr RPAREN  ;

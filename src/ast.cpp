@@ -74,7 +74,7 @@ void AST::Compile()
 
     std::vector<ASTFunctionParameter> emptyParams;
     auto* mainFunc = new ASTFunction(*this, VarTypeSimple::IntType.Copy(), std::move(emptyParams));
-     auto func = llvm::Function::Create((llvm::FunctionType*) mainFunc->funcType->GetLLVMType(context), llvm::GlobalValue::LinkageTypes::ExternalLinkage, "main", module);
+    auto func = llvm::Function::Create((llvm::FunctionType*) mainFunc->funcType->GetLLVMType(context), llvm::GlobalValue::LinkageTypes::ExternalLinkage, "main", module);
 
     llvm::BasicBlock* entry = llvm::BasicBlock::Create(context, "entry", func);
     builder.SetInsertPoint(entry);
@@ -83,22 +83,36 @@ void AST::Compile()
     for (const auto& varName : globalVarList)
     {
         std::cout << "INFO: Compiling binding " + varName + "." << std::endl;
-        
-        //compile the expression associated with the binding...this will be an llvm::Value*
-        
-        auto* value = globalVars[varName]->Compile(module, builder); 
-      
-        std::unique_ptr<VarType> type = globalVars[varName]->ReturnType()->Copy(); 
-        /* NOTE: if this type is a variable, it should already be added */
 
-        llvm::Type* llvmtype = type->GetLLVMType(context); 
-       
-        //need to add functionality for adding functions that are bound in define statements 
-        //only do this if the type is int, real, bool, char
+        //compile the expression to obtain the value
+        std::unique_ptr<VarType> type;
 
-        //create an llvm::GlobalVariable* and add to the module
-        auto* gVar = new llvm::GlobalVariable(module, llvmtype, true, llvm::GlobalValue::ExternalLinkage, (llvm::Constant*) value, varName);
-        module.getOrInsertGlobal(varName, llvmtype);
+        //check if the object being returned is a function, and if so get the function type instead of the return type
+        ASTFunction* castedExpr = dynamic_cast<ASTFunction*>(globalVars[varName].get());
+        if(!castedExpr){
+            type = globalVars[varName]->ReturnType()->Copy();  
+        } else {
+            type = castedExpr->funcType->Copy();
+        }
+
+        llvm::Type* llvmtype = type->GetLLVMType(context);
+
+
+
+        //two cases for dealing with global constants and functions
+        VarTypeFunction* castedType = dynamic_cast<VarTypeFunction*>(type.get());
+        if(!castedType){  
+
+            //create an llvm::GlobalVariable* that is added to the module
+            auto* value = globalVars[varName]->Compile(module, builder);
+            auto* gVar = new llvm::GlobalVariable(module, llvmtype, true, llvm::GlobalValue::ExternalLinkage, (llvm::Constant*) value, varName);
+            module.getOrInsertGlobal(varName, llvmtype);
+
+        } else {
+
+            auto* funcValue = castedExpr->Compile(varName, module, builder, castedExpr);
+            scopeTable.SetVariableValue(varName, funcValue);
+        }
     }
 
     //Then, compile all the global expressions...expressions are nameless, so just put iter # inside string
@@ -158,6 +172,10 @@ void AST::Compile()
     //     } 
     // }
     
+    // Create return instruction and insert it into the end of the entry block
+    llvm::Value *returnValue = llvm::ConstantInt::get(context, llvm::APInt(32, 1, true));
+    builder.CreateRet(returnValue);
+
     compiled = true;
 }
 
