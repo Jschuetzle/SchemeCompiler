@@ -19,7 +19,7 @@ bool ASTExpressionList::IsLValue(ASTFunction* func)
     return false;
 }
 
-llvm::Value* ASTExpressionList::Compile(llvm::IRBuilder<>& builder, ASTFunction* func) {
+llvm::Value* ASTExpressionList::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func) {
     llvm::Value* lastValue = nullptr;
     ASTExpressionListNode* currentNode = head.get();
     
@@ -27,7 +27,7 @@ llvm::Value* ASTExpressionList::Compile(llvm::IRBuilder<>& builder, ASTFunction*
     while (currentNode) {
         if (currentNode->data) {
             // Compile the expression in the current node
-            lastValue = currentNode->data->Compile(builder, func);
+            lastValue = currentNode->data->Compile(mod, builder, func);
             if (!lastValue) {
                 throw std::runtime_error("Compilation error in expression list node.");
             }

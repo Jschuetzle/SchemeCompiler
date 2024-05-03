@@ -14,11 +14,11 @@ bool ASTExpressionListNode::IsLValue(ASTFunction* func)
     return false;
 }
 
-llvm::Value* ASTExpressionListNode::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionListNode::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
    //there is a possibility that I have to do type checking here
    //but I think I'm going to handle that in the parser
-   return data->Compile(builder, func); 
+   return data->Compile(mod, builder, func); 
 }
 
 std::string ASTExpressionListNode::ToString(const std::string& prefix)

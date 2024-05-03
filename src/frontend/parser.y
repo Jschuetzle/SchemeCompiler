@@ -22,7 +22,6 @@
 	#include "../src/expressions/division.h"
     #include "../src/expressions/remainder.h"
     //#include "../src/expressions/negative.h"
-	//#include "../src/expressions/assignment.h"
 	#include "../src/expressions/comparison.h"
 	#include "../src/expressions/and.h"
 	#include "../src/expressions/or.h"
@@ -56,8 +55,6 @@
   double fltval;
   char *strval;
   struct node *nodeval;
-  //ASTFunctionParameter *var;
-  //std::vector<ASTFunctionParameter *> *vars;
   ASTExpression *exp;
   ASTExpressionListNode *exprVec;
   VarType *type;
@@ -70,14 +67,12 @@
 %type <strval> ID STRING_LITERAL
 %type <intval> intLit INT_LITERAL
 %type <fltval> realLit REAL_LITERAL
-//%type <var> varDec
-//%type <vars> 
 %type <exp> expr datum
 %type <exprVec> datumList
 %type <type> type
 %type <rel> relop
 
-%expect 0 // Shift/reduce conflict when resolving the if/else production; 
+%expect 2 // Shift/reduce conflict when resolving two versions of if statement
 
 %%
 
@@ -109,44 +104,62 @@ type: BOOL_TYPE {
 }| STRING_TYPE {
   $$ = new VarTypeSimple(VarTypeSimple::StringType);
 } | LIST_TYPE RELOP_LT type RELOP_GT {
+  //our grammar technically allows for the storage of variable sized lists in lists, as long as the element types are consistent
   $$ = new VarTypeList(std::unique_ptr<VarType>($3));
 };
 
+// productions for all possible expressions
 expr: datum 
+    // lambda expressions
     | LPAREN LAMBDA type LPAREN paramList RPAREN expr RPAREN {
         $$ = $7;
-    }  | LPAREN LOGICAL_AND expr expr RPAREN {
+    }
+    | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN {
+        
+    }
+    // boolean operations
+    | LPAREN LOGICAL_AND expr expr RPAREN {
         $$ = new ASTExpressionAnd(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
-    } | LPAREN LOGICAL_OR expr expr RPAREN {
+    } 
+
+    | LPAREN LOGICAL_OR expr expr RPAREN {
         $$ = new ASTExpressionOr(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
-    }  | LPAREN LOGICAL_NOT expr RPAREN {
+    }
+
+    | LPAREN LOGICAL_NOT expr RPAREN {
         $$ = new ASTExpressionNot(ast, std::unique_ptr<ASTExpression>($3));
     }
 
 
 
     /*
-    | LPAREN ID exprList RPAREN
-    | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN 
-    | LPAREN IF expr expr expr RPAREN  
+    | LPAREN ID exprList RPAREN  ; function calls
+    | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN   ; local variable bindings
+    | LPAREN IF expr expr expr RPAREN 
     | LPAREN IF expr expr RPAREN  
     | LPAREN COND caseList LPAREN ELSE expr RPAREN RPAREN
     */    
+    // math operations
     | LPAREN ARITH_PLUS expr expr RPAREN {
       $$ = new ASTExpressionAddition(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
     }
+
     | LPAREN ARITH_MINUS expr expr RPAREN {
       $$ = new ASTExpressionSubtraction(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
     }
+
     | LPAREN ARITH_MULT expr expr RPAREN {
       $$ = new ASTExpressionMultiplication(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
     }
+
     | LPAREN ARITH_DIV expr expr RPAREN {
       $$ = new ASTExpressionDivision(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
     }
+
     | LPAREN ARITH_REMAINDER expr expr RPAREN {
       $$ = new ASTExpressionRemainder(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
-    } /*
+    } 
+/*
     | LPAREN ARITH_MINUS expr RPAREN {  //unary minus
       $$ = new ASTExpressionNegation(ast, std::unique_ptr<ASTExpression>($3));
     }
@@ -165,46 +178,46 @@ expr: datum
 
 //nonterminals inside production body for lambda expression
 paramList: | paramList type ID  ;
-//bindList: | bind bindList  ;
-//bind: LPAREN ID expr RPAREN  ;
+bindList: | bind bindList  ;
+bind: LPAREN ID expr RPAREN  ;
 
 //used when binding pairs are needed in a let
 //caseList: | caseList LPAREN expr expr RPAREN  ;
 
-//Data types and operators
+//used for repeated expressions inside list declarations
 datumList:
     datum datumList {
+        //created node with value of datum and next pointer to the rest of the datumlist
         $$ = new ASTExpressionListNode(ast, std::unique_ptr<ASTExpression>($1), std::unique_ptr<ASTExpressionListNode>($2));
     } |    {
+        //initialized to null b/c the next pointer of the final linkedlist node is NULL
         $$ = nullptr;
     };
 
-
+/* 
+    All the explicit values that a programmar can declare in code. Note that ONLY the list
+    datum requires a type in it's declaration. This is needed in order for the compiler do to do
+    type checks on all the elements it has to process when compiling the AST nodes for a list
+*/
 datum: 
     intLit {
         $$ = new ASTExpressionInt(ast, $1);
     }  
-  | realLit {
+    | realLit {
         $$ = new ASTExpressionReal(ast, $1);
     }
-  | ID {
+    | ID {
         $$ = new ASTExpressionVariable(ast, $1);
     }
-  | BOOL_LITERAL {
+    | BOOL_LITERAL {
         $$ = new ASTExpressionBool(ast, $1);
     }
-  | LIST_TYPE RELOP_LT type RELOP_GT APOSTROPHE LPAREN datumList RPAREN {
+    | LIST_TYPE RELOP_LT type RELOP_GT APOSTROPHE LPAREN datumList RPAREN {
         $$ = new ASTExpressionList(ast, std::unique_ptr<VarType>($3), std::unique_ptr<ASTExpressionListNode>($7));
     }
-  | STRING_LITERAL {
+    | STRING_LITERAL {
         $$ = new ASTExpressionString(ast, $1);
     };
-
- 
-
-    /*
-  | STRING_LITERAL ;
-    */
 
 intLit: INT_LITERAL | ARITH_MINUS INT_LITERAL {$$ = -1 * $2;};
 realLit: REAL_LITERAL | ARITH_MINUS REAL_LITERAL {$$ = -1 * $2;};
@@ -220,8 +233,6 @@ relop: RELOP_LT {
 } | RELOP_EQ {
   $$ = ASTExpressionComparisonType::Equal;
 };
-//binaryMathOp: ARITH_PLUS | ARITH_MINUS | ARITH_MULT | ARITH_DIV | ARITH_REMAINDER  ; // probably useless
-//relop: RELOP_LT | RELOP_LE | RELOP_GT | RELOP_GE | RELOP_EQ ;
 
 
 %%

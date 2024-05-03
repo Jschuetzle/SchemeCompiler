@@ -23,7 +23,7 @@ bool ASTExpressionVariable::IsLValue(ASTFunction* func)
 }
 
 
-llvm::Value* ASTExpressionVariable::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionVariable::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
     if(!func)
         return ast.scopeTable.GetVariableValue(var);

@@ -15,14 +15,14 @@ bool ASTExpressionMultiplication::IsLValue(ASTFunction* func)
     return false; // If we are multiplying values together, they must be usable R-Values. Multiplying these together just results in an R-Value.
 }
 
-llvm::Value* ASTExpressionMultiplication::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionMultiplication::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
     // Compile the values as needed. Remember, we can only do operations on R-Values.
     auto retType = ReturnType(func);
     if (retType->Equals(&VarTypeSimple::IntType)) // Do standard multiplication on integer operands since we return an int.
-        return builder.CreateMul(m1->CompileRValue(builder, func), m2->CompileRValue(builder, func));
+        return builder.CreateMul(m1->CompileRValue(mod, builder, func), m2->CompileRValue(mod, builder, func));
     else if (retType->Equals(&VarTypeSimple::RealType)) // Do multiplication on floating point operands since we return a float.
-        return builder.CreateFMul(m1->CompileRValue(builder, func), m2->CompileRValue(builder, func));
+        return builder.CreateFMul(m1->CompileRValue(mod, builder, func), m2->CompileRValue(mod, builder, func));
     else // Call to return type should make this impossible, but best to keep it here just in case of a bug.
         throw std::runtime_error("ERROR: Can not perform this multiplication! Are both inputs either ints or floats?");
 }

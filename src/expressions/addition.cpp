@@ -16,7 +16,7 @@ bool ASTExpressionAddition::IsLValue(ASTFunction* func)
     return false; // If we are adding values together, they must be usable R-Values. Adding these together just results in an R-Value.
 }
 
-llvm::Value* ASTExpressionAddition::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionAddition::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
     /*
        The type of the operands in the addition decide what value will be returned.
@@ -27,14 +27,13 @@ llvm::Value* ASTExpressionAddition::Compile(llvm::IRBuilder<>& builder, ASTFunct
     auto retType = a1->ReturnType();
 
     if (retType.get()->Equals(&VarTypeSimple::IntType)){
-        return builder.CreateAdd(a1->Compile(builder, func), a2->Compile(builder, func));
+        return builder.CreateAdd(a1->Compile(mod, builder, func), a2->Compile(mod, builder, func));
     }
     else if (retType.get()->Equals(&VarTypeSimple::RealType)){
         std::cout << "real" << std::endl;
-        return builder.CreateFAdd(a1->CompileRValue(builder, func), a2->CompileRValue(builder, func));
+        return builder.CreateFAdd(a1->CompileRValue(mod, builder, func), a2->CompileRValue(mod, builder, func));
     }
     else {
-        std::cout << "none" << std::endl;
         throw std::runtime_error("ERROR: Can not perform addition! Are both inputs either ints or floats?"); 
     }
 }

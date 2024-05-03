@@ -100,7 +100,7 @@ void ASTFunction::Define(std::unique_ptr<ASTExpression> definition)
     else throw std::runtime_error("ERROR: Function already has a definition!");
 }
 
-llvm::Value* ASTFunction::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTFunction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
     /*
     // First, add a new function declaration to our scope.

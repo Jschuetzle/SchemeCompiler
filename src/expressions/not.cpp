@@ -14,7 +14,7 @@ class ASTFunction;
      return false; // not operator works on two R-Values to produce an R-Value.
  }
 
- llvm::Value* ASTExpressionNot::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+ llvm::Value* ASTExpressionNot::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
  {
      // Make sure to cast the operand as a boolean first.
      //ASTExpression::ImplicitCast(func, a1, &VarTypeSimple::BoolType);
@@ -29,7 +29,7 @@ class ASTFunction;
          funcVal = (llvm::Function*) func->GetVariableValue(func->name);   
      }    
     
-     llvm::Value* operand = a1->CompileRValue(builder, func);
+     llvm::Value* operand = a1->CompileRValue(mod, builder, func);
      return builder.CreateNot(operand);
 }
 

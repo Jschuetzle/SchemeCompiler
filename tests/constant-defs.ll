@@ -1,8 +1,9 @@
 ; ModuleID = 'TestMod'
 source_filename = "TestMod"
 
-@b = constant i32 35
-@f = constant double 3.140000e+00
+@integer = constant i32 5
+@r = constant double 3.140000e+00
+@b = constant i1 true
 
 define i32 @main() {
 entry:

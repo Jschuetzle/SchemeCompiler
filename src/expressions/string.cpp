@@ -1,4 +1,5 @@
 #include "string.h"
+#include <iostream>
 
 #include <regex>
 
@@ -12,9 +13,9 @@ bool ASTExpressionString::IsLValue(ASTFunction* func)
     return false; // It's a constant, of course it's not an L-Value.
 }
 
-llvm::Value* ASTExpressionString::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionString::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
-    return builder.CreateGlobalStringPtr(value); // Simply just create a global string to return.
+    return builder.CreateGlobalStringPtr(value); // Simply just create a global string to return. 
 }
 
 std::string ASTExpressionString::ToString(const std::string& prefix)

@@ -7,18 +7,18 @@ std::unique_ptr<VarType> ASTExpressionComparison::ReturnType(ASTFunction* func)
 
 bool ASTExpressionComparison::IsLValue(ASTFunction* func)
 {
-    return false; // If we are adding values together, they must be usable R-Values. Adding these together just results in an R-Value.
+    return false;
 }
 
-llvm::Value* ASTExpressionComparison::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionComparison::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
     VarTypeSimple* returnType;
     if (!ASTExpression::CoerceTypes(ast, func, a1, a2, returnType)) // This will force our arguments to be the same type and outputs which one it is.
             throw std::runtime_error("ERROR: Can not coerce types in comparison expression! Are they all booleans, ints, and floats?");
 
     // Get values. Operations only work on R-Values.
-    auto a1Val = a1->CompileRValue(builder, func);
-    auto a2Val = a2->CompileRValue(builder, func);
+    auto a1Val = a1->CompileRValue(mod, builder, func);
+    auto a2Val = a2->CompileRValue(mod, builder, func);
 
     // Int type, do int comparisons.
     if (returnType->Equals(&VarTypeSimple::IntType))

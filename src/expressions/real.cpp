@@ -10,7 +10,7 @@ bool ASTExpressionReal::IsLValue(ASTFunction* func)
     return false;
 }
 
-llvm::Value* ASTExpressionReal::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionReal::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
     return llvm::ConstantFP::get(VarTypeSimple::RealType.GetLLVMType(builder.getContext()), value); // Simply just create an double constant to return.
 }

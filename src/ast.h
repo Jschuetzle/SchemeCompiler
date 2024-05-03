@@ -20,8 +20,6 @@ class AST
     // Builder to build IR code in functions.
     llvm::IRBuilder<> builder;
 
-
-
     // list of binding names; needed in order to compile bindings in the order they appear
     std::vector<std::string> globalVarList;
 
@@ -58,17 +56,13 @@ public:
     //Returns: A pointer to the global variable. Throws an exception if it does not exist.
     ASTExpression* GetGlobalVariable(const std::string& name); 
 
-
     //Add an expression to the AST (which will be executed from global context)
     //expr: Expression to be executed
     //returns: a pointer to the newly added expression
     ASTExpression* AddExpressionCall(std::unique_ptr<ASTExpression> expr);
 
-    // Compile the AST. This must be done before exporting any object files
+     // Compile the AST. This must be done before exporting any object files
     void Compile();
-
-    // Returns llvm global variable constant that is added to module
-    llvm::GlobalVariable* CreateGlobalConstant(std::string name, llvm::Type* llvmtype, llvm::Value* llvmvalue);
 
     // Get a string representation of the AST.
     std::string ToString();

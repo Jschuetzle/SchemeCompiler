@@ -15,14 +15,14 @@ bool ASTExpressionSubtraction::IsLValue(ASTFunction* func)
     return false; // If we are subtracting values, they must be using R-values. Subtracting these values just results in an R-value.
 }
 
-llvm::Value* ASTExpressionSubtraction::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionSubtraction::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
     // Compile the values as needed. Remember, we can only do operations on R-values.
     auto retType = ReturnType(func);
     if (retType->Equals(&VarTypeSimple::IntType)) // Do standard subtraction on integer operands since we return an int.
-        return builder.CreateSub(s1->CompileRValue(builder, func), s2->CompileRValue(builder, func));
+        return builder.CreateSub(s1->CompileRValue(mod, builder, func), s2->CompileRValue(mod, builder, func));
     else if (retType->Equals(&VarTypeSimple::RealType)) // Do subtraction on floating point operands since we return a float.
-        return builder.CreateFSub(s1->CompileRValue(builder, func), s2->CompileRValue(builder, func));
+        return builder.CreateFSub(s1->CompileRValue(mod, builder, func), s2->CompileRValue(mod, builder, func));
     else
         throw std::runtime_error("ERROR: Can not perform subtraction! Are both inputs either ints or floats?");
 }
