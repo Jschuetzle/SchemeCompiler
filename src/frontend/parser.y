@@ -76,7 +76,7 @@
 %type <rel> relop
 %type <check> checkOp
 
-%expect 2 // Shift/reduce conflict when resolving two versions of if statement
+%expect 0 // Shift/reduce conflict when resolving two versions of if statement
 
 %%
 
@@ -88,8 +88,8 @@ treat everything as an expression (which is not desired since we want a distinct
 
 Therefore, the grammar must enforce that all binding syntax comes before expressions
 */
-program: globalDefList expr {
-    auto e = ast.AddExpressionCall(std::unique_ptr<ASTExpression>($2));       
+program: globalDefList {
+    //auto e = ast.AddExpressionCall(std::unique_ptr<ASTExpression>($2));       
 };
 
 globalDefList: | globalDefList LPAREN DEFINE ID expr RPAREN {
@@ -112,15 +112,17 @@ type: BOOL_TYPE {
   $$ = new VarTypeList(std::unique_ptr<VarType>($3));
 };
 
+
 // productions for all possible expressions
 expr: datum 
     // lambda expressions
+    /*
     | LPAREN LAMBDA type LPAREN paramList RPAREN expr RPAREN {
         $$ = $7;
     }
     | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN {
         
-    }
+    }*/
     // boolean operations
     | LPAREN LOGICAL_AND expr expr RPAREN {
         $$ = new ASTExpressionAnd(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
@@ -181,9 +183,9 @@ expr: datum
    */ 
 
 //nonterminals inside production body for lambda expression
-paramList: | paramList type ID  ;
-bindList: | bind bindList  ;
-bind: LPAREN ID expr RPAREN  ;
+//paramList: | paramList type ID  ;
+//bindList: | bind bindList  ;
+//bind: LPAREN ID expr RPAREN  ;
 
 //used when binding pairs are needed in a let
 //caseList: | caseList LPAREN expr expr RPAREN  ;
