@@ -21,12 +21,14 @@
 	#include "../src/expressions/multiplication.h"
 	#include "../src/expressions/division.h"
     #include "../src/expressions/remainder.h"
-    //#include "../src/expressions/negative.h"
+    #include "../src/expressions/negative.h"
+	//#include "../src/expressions/assignment.h"
 	#include "../src/expressions/comparison.h"
 	#include "../src/expressions/and.h"
 	#include "../src/expressions/or.h"
     #include "../src/expressions/not.h"
 	//#include "../src/expressions/if.h"
+    #include "../src/expressions/check.h"
 	#include "../src/types/simple.h"
     #include "../src/types/list.h"
 	extern FILE *yyin; 
@@ -59,6 +61,7 @@
   ASTExpressionListNode *exprVec;
   VarType *type;
   ASTExpressionComparisonType rel;
+  ASTExpressionCheckType check;
 }
 
 %token LPAREN RPAREN INT_TYPE REAL_TYPE STRING_TYPE BOOL_TYPE LIST_TYPE APOSTROPHE BOOL_LITERAL INT_LITERAL REAL_LITERAL ID RELOP_GT RELOP_LT RELOP_GE RELOP_LE RELOP_EQ ARITH_PLUS ARITH_MINUS ARITH_MULT ARITH_DIV ARITH_REMAINDER NULL_CHECK_OP BOOL_CHECK_OP NUMBER_CHECK_OP REAL_CHECK_OP LIST_CHECK_OP LOGICAL_OR LOGICAL_AND LOGICAL_NOT DEFINE LET CAR CDR CONS LAMBDA COND IF ELSE STRING_LITERAL 
@@ -71,6 +74,7 @@
 %type <exprVec> datumList
 %type <type> type
 %type <rel> relop
+%type <check> checkOp
 
 %expect 2 // Shift/reduce conflict when resolving two versions of if statement
 
@@ -168,11 +172,11 @@ expr: datum
     | LPAREN CDR expr RPAREN */
     | LPAREN relop expr expr RPAREN {
       $$ = new ASTExpressionComparison(ast, $2, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
+    } /*
+    | LPAREN NULL_CHECK_OP expr RPAREN */
+    | LPAREN checkOp expr RPAREN  {
+      $$ = new ASTExpressionCheck(ast, $2, std::unique_ptr<ASTExpression>($3));
     }; /*
-    | LPAREN NULL_CHECK_OP expr RPAREN
-    | LPAREN BOOL_CHECK_OP expr RPAREN
-    | LPAREN NUMBER_CHECK_OP expr RPAREN
-    | LPAREN REAL_CHECK_OP expr RPAREN
     | LPAREN LIST_CHECK_OP expr RPAREN  ;
    */ 
 
@@ -234,6 +238,15 @@ relop: RELOP_LT {
   $$ = ASTExpressionComparisonType::Equal;
 };
 
+//binaryMathOp: ARITH_PLUS | ARITH_MINUS | ARITH_MULT | ARITH_DIV | ARITH_REMAINDER  ; // probably useless
+//relop: RELOP_LT | RELOP_LE | RELOP_GT | RELOP_GE | RELOP_EQ ;
+checkOp: BOOL_CHECK_OP {
+  $$ = ASTExpressionCheckType::BoolType;
+} | NUMBER_CHECK_OP {
+  $$ = ASTExpressionCheckType::NumberType;
+} | REAL_CHECK_OP {
+  $$ = ASTExpressionCheckType::RealType;
+};
 
 %%
 int main(int argc, char **argv) {
