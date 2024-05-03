@@ -1,4 +1,5 @@
 #include "addition.h"
+#include <iostream>
 
 std::unique_ptr<VarType> ASTExpressionAddition::ReturnType(ASTFunction* func)
 {
@@ -15,16 +16,26 @@ bool ASTExpressionAddition::IsLValue(ASTFunction* func)
     return false; // If we are adding values together, they must be usable R-Values. Adding these together just results in an R-Value.
 }
 
-llvm::Value* ASTExpressionAddition::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionAddition::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
-    // Compile the values as needed. Remember, we can only do operations on R-Values.
-    auto retType = ReturnType(func);
-    if (retType.get()->Equals(&VarTypeSimple::IntType)) // Do standard addition on integer operands since we return an int.
-        return builder.CreateAdd(a1->CompileRValue(builder, func), a2->CompileRValue(builder, func));
-    else if (retType.get()->Equals(&VarTypeSimple::RealType)) // Do addition on floating point operands since we return a float.
-        return builder.CreateFAdd(a1->CompileRValue(builder, func), a2->CompileRValue(builder, func));
-    else // Call to return type should make this impossible, but best to keep it here just in case of a bug.
-        throw std::runtime_error("ERROR: Can not perform addition! Are both inputs either ints or floats?");
+    /*
+       The type of the operands in the addition decide what value will be returned.
+       We have to do some type checks here...are we allowing for type coercion? For simplicity, I don't want to. But if it works then sure. So we would first need a type check here.
+
+       Also, the return type of the input function should not be apart of the conditional...it should be the return type of the operands that is checked in the conditional.
+    */
+    auto retType = a1->ReturnType();
+
+    if (retType.get()->Equals(&VarTypeSimple::IntType)){
+        return builder.CreateAdd(a1->Compile(mod, builder, func), a2->Compile(mod, builder, func));
+    }
+    else if (retType.get()->Equals(&VarTypeSimple::RealType)){
+        std::cout << "real" << std::endl;
+        return builder.CreateFAdd(a1->CompileRValue(mod, builder, func), a2->CompileRValue(mod, builder, func));
+    }
+    else {
+        throw std::runtime_error("ERROR: Can not perform addition! Are both inputs either ints or floats?"); 
+    }
 }
 
 std::string ASTExpressionAddition::ToString(const std::string& prefix)

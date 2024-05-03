@@ -2,15 +2,15 @@
 
 std::unique_ptr<VarType> ASTExpressionBool::ReturnType(ASTFunction* func)
 {
-    return VarTypeSimple::BoolType.Copy(); // Of course we return a bool.
+    return VarTypeSimple::BoolType.Copy();
 }
 
 bool ASTExpressionBool::IsLValue(ASTFunction* func)
 {
-    return false; // It's a constant, of course it's not an L-Value.
+    return false;
 }
 
-llvm::Value* ASTExpressionBool::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionBool::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
     return llvm::ConstantInt::get(VarTypeSimple::BoolType.GetLLVMType(builder.getContext()), value);
 }

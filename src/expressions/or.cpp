@@ -12,7 +12,7 @@ bool ASTExpressionOr::IsLValue(ASTFunction* func)
     return false; // || operator works on two R-Values to produce an R-Value.
 }
 
-llvm::Value* ASTExpressionOr::Compile(llvm::IRBuilder<>& builder, ASTFunction* func) // Hm, this isn't the most efficient approach. I can think of a much easier way...
+llvm::Value* ASTExpressionOr::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func) // Hm, this isn't the most efficient approach. I can think of a much easier way...
 {
 
     // Make sure to cast both sides as booleans first.
@@ -30,8 +30,8 @@ llvm::Value* ASTExpressionOr::Compile(llvm::IRBuilder<>& builder, ASTFunction* f
     }
 
      
-     llvm::Value* left = a1->CompileRValue(builder, func);
-     llvm::Value* right = a1->CompileRValue(builder, func);
+     llvm::Value* left = a1->CompileRValue(mod, builder, func);
+     llvm::Value* right = a1->CompileRValue(mod, builder, func);
      
      return builder.CreateOr(left, right); 
 }

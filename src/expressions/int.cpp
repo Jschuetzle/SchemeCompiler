@@ -3,17 +3,17 @@
 
 std::unique_ptr<VarType> ASTExpressionInt::ReturnType(ASTFunction* func)
 {
-    return VarTypeSimple::IntType.Copy(); // Of course we are returning an int, what else would it be.
+    return VarTypeSimple::IntType.Copy(); 
 }
 
 bool ASTExpressionInt::IsLValue(ASTFunction* func)
 {
-    return false; // It's a constant, of course it's not an L-Value.
+    return false;
 }
 
-llvm::Value* ASTExpressionInt::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionInt::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
-    return llvm::ConstantInt::get(VarTypeSimple::IntType.GetLLVMType(builder.getContext()), value); // Simply just create an int constant to return.
+    return llvm::ConstantInt::get(VarTypeSimple::IntType.GetLLVMType(builder.getContext()), value); 
 }
 
 std::string ASTExpressionInt::ToString(const std::string& prefix)

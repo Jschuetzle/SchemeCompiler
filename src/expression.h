@@ -45,7 +45,7 @@ public:
     // builder: LLVM IR builder.
     // func: Function that contains this expression.
     // Returns: An LLVM value. Can be null if void is returned, you may need ReturnType for the current expression or arguments to type check.
-    virtual llvm::Value* Compile(llvm::IRBuilder<>& builder, ASTFunction* func = nullptr) = 0;
+    virtual llvm::Value* Compile(llvm::Module& mod,  llvm::IRBuilder<>& builder, ASTFunction* func = nullptr) = 0;
 
     
     // Recursively build a string representation of this expression.
@@ -58,7 +58,7 @@ public:
     // builder: LLVM IR builder.
     // func: Function that contains this expression.
     // Returns: An LLVM value. Can be null if void is returned.
-    llvm::Value* CompileRValue(llvm::IRBuilder<>& builder, ASTFunction* func = nullptr);
+    llvm::Value* CompileRValue(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func = nullptr);
 
     // Coerce math types.
     // As of now it does not coerce types, but only checks if they are the same.
@@ -73,5 +73,5 @@ public:
     static bool CoerceTypes(AST& ast, ASTFunction* func, std::unique_ptr<ASTExpression>& a1, std::unique_ptr<ASTExpression>& a2, VarTypeSimple*& outCoercedType);
 
     // DO NOT CALL THIS FROM EXPRESSION SUBCLASSES! THERE'S A GOOD CHANCE IT WON'T DO WHAT YOU WANT IT TO!
-    void Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func);
+    //void Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func);
 };

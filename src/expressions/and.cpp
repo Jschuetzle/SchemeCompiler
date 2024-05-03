@@ -11,10 +11,10 @@ class ASTFunction;
 
  bool ASTExpressionAnd::IsLValue(ASTFunction* func)
  {
-     return false; // && operator works on two R-Values to produce an R-Value.
+     return false;
  }
 
- llvm::Value* ASTExpressionAnd::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+ llvm::Value* ASTExpressionAnd::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
  {
      // Make sure to cast both sides as booleans first.
      //ASTExpression::ImplicitCast(func, a1, &VarTypeSimple::BoolType);
@@ -30,8 +30,8 @@ class ASTFunction;
          funcVal = (llvm::Function*) func->GetVariableValue(func->name);   
      }    
      
-     llvm::Value* left = a1->CompileRValue(builder, func);
-     llvm::Value* right = a1->CompileRValue(builder, func);
+     llvm::Value* left = a1->CompileRValue(mod, builder, func);
+     llvm::Value* right = a1->CompileRValue(mod, builder, func);
      
      return builder.CreateAnd(left, right); 
 }

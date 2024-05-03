@@ -1,8 +1,14 @@
 #include "list.h"
+#include <iostream>
+
+ASTExpressionList::ASTExpressionList(AST& ast, std::unique_ptr<VarType> elementType, std::unique_ptr<ASTExpressionListNode> head) : ASTExpression(ast), head(std::move(head)){
+    listType = std::make_unique<VarTypeList>(std::move(elementType));
+}
+
 
 std::unique_ptr<VarType> ASTExpressionList::ReturnType(ASTFunction* func)
 {
-    return head->data->ReturnType()->Copy();
+    return listType->Copy();
 }
 
 bool ASTExpressionList::IsLValue(ASTFunction* func)
@@ -13,15 +19,15 @@ bool ASTExpressionList::IsLValue(ASTFunction* func)
     return false;
 }
 
-llvm::Value* ASTExpressionList::Compile(llvm::IRBuilder<>& builder, ASTFunction* func) {
+llvm::Value* ASTExpressionList::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func) {
     llvm::Value* lastValue = nullptr;
     ASTExpressionListNode* currentNode = head.get();
-
+    
     // Iterate through each node in the linked list
     while (currentNode) {
         if (currentNode->data) {
             // Compile the expression in the current node
-            lastValue = currentNode->data->Compile(builder, func);
+            lastValue = currentNode->data->Compile(mod, builder, func);
             if (!lastValue) {
                 throw std::runtime_error("Compilation error in expression list node.");
             }
@@ -34,8 +40,6 @@ llvm::Value* ASTExpressionList::Compile(llvm::IRBuilder<>& builder, ASTFunction*
     // I need to see where this compile function is being used, because I DON'T THINK RETURNING THE LAST VALUE IS WHAT WE WANT
     return lastValue;
 }
-
-#include <string>
 
 std::string ASTExpressionList::ToString(const std::string& prefix) {
     std::string output = "list\n";
