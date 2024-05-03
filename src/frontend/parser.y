@@ -8,7 +8,7 @@
 	#include <iostream>
 	//all of these includes are done as relative paths starting from the build/ directory, since that's where CMake places parser.tab.cc
 	#include "../src/ast.h"
-	//#include "../src/expressions/call.h"
+	#include "../src/expressions/call.h"
 	#include "../src/expressions/int.h"
 	#include "../src/expressions/real.h"
   #include "../src/expressions/bool.h"
@@ -22,7 +22,6 @@
 	#include "../src/expressions/division.h"
   #include "../src/expressions/remainder.h"
   #include "../src/expressions/negative.h"
-	//#include "../src/expressions/assignment.h"
 	#include "../src/expressions/comparison.h"
 	#include "../src/expressions/and.h"
 	#include "../src/expressions/or.h"
@@ -59,6 +58,7 @@
   char *strval;
   struct node *nodeval;
   ASTExpression *exp;
+  std::vector<ASTExpression *> *args;
   ASTExpressionListNode *exprVec;
   ASTFunctionParameter *var;
   std::vector<ASTFunctionParameter *> *vars;
@@ -74,13 +74,14 @@
 %type <intval> intLit INT_LITERAL
 %type <fltval> realLit REAL_LITERAL
 %type <exp> expr datum
+%type <args> exprList
 %type <exprVec> datumList
 %type <vars> paramList
 %type <type> type
 %type <rel> relop
 %type <check> checkOp
 
-%expect 0 // Shift/reduce conflict when resolving two versions of if statement
+%expect 1 // Shift/reduce conflict when resolving two versions of if statement
 
 %%
 
@@ -147,11 +148,19 @@ expr: datum
     | LPAREN LOGICAL_NOT expr RPAREN {
         $$ = new ASTExpressionNot(ast, std::unique_ptr<ASTExpression>($3));
     }
-
-
-
+    
+    | LPAREN ID exprList RPAREN {
+        auto argVec = std::vector<std::unique_ptr<ASTExpression>>();
+        for(auto a : *$3) {
+          argVec.push_back(std::unique_ptr<ASTExpression>(a));
+        }
+        $$ = new ASTExpressionCall(ast, ASTExpressionVariable::Create(ast, $2), std::move(argVec));
+    }
+    | LPAREN ID RPAREN {
+        $$ = new ASTExpressionCall(ast, ASTExpressionVariable::Create(ast, $2), std::vector<std::unique_ptr<ASTExpression>>());
+    }
+  
     /*
-    | LPAREN ID exprList RPAREN  ; function calls
     | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN   ; local variable bindings
     | LPAREN IF expr expr expr RPAREN 
     | LPAREN IF expr expr RPAREN  
@@ -198,10 +207,16 @@ expr: datum
 paramList: paramList type ID {
   $1->push_back(new ASTFunctionParameter(std::unique_ptr<VarType>($2), $3));
   $$ = $1;
-} |     {
+} |    {
   $$ = new std::vector<ASTFunctionParameter*>();
 };
 
+exprList: expr exprList {
+  $2->push_back($1);
+  $$ = $2;
+} |    {
+  $$ = new std::vector<ASTExpression*>();
+}
 /* bindList: | bind bindList  ;
 bind: LPAREN ID expr RPAREN  ; */
 
