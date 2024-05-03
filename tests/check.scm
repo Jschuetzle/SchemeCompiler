@@ -1,0 +1,1 @@
+(define a (real? 10.0))
