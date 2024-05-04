@@ -1,9 +1,17 @@
 ; ModuleID = 'TestMod'
 source_filename = "TestMod"
 
+declare i32 @puts(i8*)
+declare i8* @itoa(i32, i8*)
+
 define i32 @main() {
 entry:
-  ret i32 1
+  %factResult = call i32 @fact(i32 30)
+  %buf = alloca [20 x i8], align 1
+  %bufptr = bitcast [20 x i8]* %buf to i8*
+  %str = call i8* @itoa(i32 %factResult, i8* %bufptr)
+  %putsResult = call i32 @puts(i8* %str)
+  ret i32 0
 }
 
 define i32 @fact(i32 %n) {
