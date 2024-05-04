@@ -15,6 +15,7 @@ Each test case demonstrates specific functionalities of the compiler:
 * mathOpsTest.scm: Assesses basic mathematical operations (`remainder`, `+`, `-`, `*`, `/`).
 * varTest.scm: Verifies variable handling.
 * recurse.scm: Ensures out Scheme program is able to use basic recursion.
+* fibonacci.scm: A basic fibonnaci number calculator to stress test our compiler.
 
 **needs to be tested**
 * listIter.scm: Basic function to iterrate through a list.
