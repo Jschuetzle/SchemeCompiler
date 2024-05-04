@@ -25,5 +25,5 @@ llvm::Value* ASTExpressionNegation::Compile(llvm::Module& mod, llvm::IRBuilder<>
 
 std::string ASTExpressionNegation::ToString(const std::string& prefix)
 {
-    return "!\n" + prefix + "└──" + operand->ToString(prefix + "  ");
+    return "(-)\n" + prefix + "└──" + operand->ToString(prefix + "  ");
 }
