@@ -230,9 +230,11 @@ bind: LPAREN ID expr RPAREN  ; */
 datumList:
     datum datumList {
         //created node with value of datum and next pointer to the rest of the datumlist
+        std::cout << "Reducing list node" << std::endl;
         $$ = new ASTExpressionListNode(ast, std::unique_ptr<ASTExpression>($1), std::unique_ptr<ASTExpressionListNode>($2));
     } |    {
         //initialized to null b/c the next pointer of the final linkedlist node is NULL
+        std::cout << "Creating empty list" << std::endl;
         $$ = nullptr;
     };
 
@@ -255,6 +257,7 @@ datum:
         $$ = new ASTExpressionBool(ast, $1);
     }
     | LIST_TYPE RELOP_LT type RELOP_GT APOSTROPHE LPAREN datumList RPAREN {
+        std::cout << "Reduced list datum" << std::endl;
         $$ = new ASTExpressionList(ast, std::unique_ptr<VarType>($3), std::unique_ptr<ASTExpressionListNode>($7));
     }
     | STRING_LITERAL {

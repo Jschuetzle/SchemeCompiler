@@ -88,29 +88,39 @@ void AST::Compile()
         std::unique_ptr<VarType> type;
 
         //check if the object being returned is a function, and if so get the function type instead of the return type
-        ASTFunction* castedExpr = dynamic_cast<ASTFunction*>(globalVars[varName].get());
-        if(!castedExpr){
-            type = globalVars[varName]->ReturnType()->Copy();  
+        ASTFunction* castedFuncExpr = dynamic_cast<ASTFunction*>(globalVars[varName].get());
+        ASTExpressionList* castedListExpr = dynamic_cast<ASTExpressionList*>(globalVars[varName].get());
+
+        if(!castedFuncExpr){
+            if(!castedListExpr){
+                type = globalVars[varName]->ReturnType()->Copy();  
+            } else {
+                type = castedListExpr->listType->Copy();
+            }
         } else {
-            type = castedExpr->funcType->Copy();
+            type = castedFuncExpr->funcType->Copy();
         }
 
         llvm::Type* llvmtype = type->GetLLVMType(context);
 
-
-
         //two cases for dealing with global constants and functions
-        VarTypeFunction* castedType = dynamic_cast<VarTypeFunction*>(type.get());
-        if(!castedType){  
+        VarTypeFunction* castedFuncType = dynamic_cast<VarTypeFunction*>(type.get());
+        VarTypeList* castedListType = dynamic_cast<VarTypeList*>(type.get());
 
-            //create an llvm::GlobalVariable* that is added to the module
-            auto* value = globalVars[varName]->Compile(module, builder);
-            auto* gVar = new llvm::GlobalVariable(module, llvmtype, true, llvm::GlobalValue::ExternalLinkage, (llvm::Constant*) value, varName);
-            module.getOrInsertGlobal(varName, llvmtype);
-            scopeTable.SetVariableValue(varName, value);
+        if(!castedFuncType){  
+            if(!castedListType){
+                //create an llvm::GlobalVariable* that is added to the module
+                auto* value = globalVars[varName]->Compile(module, builder);
+                auto* gVar = new llvm::GlobalVariable(module, llvmtype, true, llvm::GlobalValue::ExternalLinkage, (llvm::Constant*) value, varName);
+                module.getOrInsertGlobal(varName, llvmtype);
+                scopeTable.SetVariableValue(varName, value);
+            } else {
+                auto* listValue = castedListExpr->Compile(varName, module, builder, nullptr);
+                scopeTable.SetVariableValue(varName, listValue);
+            }
         } else {
 
-            auto* funcValue = castedExpr->Compile(varName, module, builder, castedExpr);
+            auto* funcValue = castedFuncExpr->Compile(varName, module, builder, castedFuncExpr);
             scopeTable.SetVariableValue(varName, funcValue);
         }
     }

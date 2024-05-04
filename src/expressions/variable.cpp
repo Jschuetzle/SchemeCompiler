@@ -27,6 +27,8 @@ llvm::Value* ASTExpressionVariable::Compile(llvm::Module& mod, llvm::IRBuilder<>
 {
     if(!func)
         return ast.scopeTable.GetVariableValue(var);
+    else if (var == func->name)
+        return mod.getFunction(var);
     else
        return func->GetVariableValue(var);
 }

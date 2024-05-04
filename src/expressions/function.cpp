@@ -110,6 +110,7 @@ llvm::Value* ASTFunction::Compile(std::string name, llvm::Module& mod, llvm::IRB
 
     // First, add a new function declaration to our scope.
     auto function = llvm::Function::Create((llvm::FunctionType*) funcType->GetLLVMType(builder.getContext()), llvm::GlobalValue::LinkageTypes::ExternalLinkage, name, mod);
+    this->name = name;
 
     // Set parameter names.
     unsigned idx = 0;
@@ -165,7 +166,14 @@ llvm::Value* ASTFunction::Compile(std::string name, llvm::Module& mod, llvm::IRB
     }
 
     // Generate the function.
-    auto* returnValue = definition->Compile(mod, builder, this);
+    ASTExpressionList* castedListExpr = dynamic_cast<ASTExpressionList*>(definition.get());
+    llvm::Value* returnValue;
+    if(castedListExpr){
+        returnValue = castedListExpr->Compile("", mod, builder, func);
+    } else {
+        returnValue = definition->Compile(mod, builder, this);
+    }
+    
 
     // Add an implicit return void if necessary.
     if (!retType)

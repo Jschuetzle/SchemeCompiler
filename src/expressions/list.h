@@ -6,12 +6,12 @@
 // An expression that represents a linked list object
 class ASTExpressionList : public ASTExpression
 {
-    // Constant int value.
-        std::unique_ptr<ASTExpressionListNode> head;
-
-        std::unique_ptr<VarTypeList> listType;
-
 public:
+
+    // Constant int value.
+    std::unique_ptr<ASTExpressionListNode> head;
+
+    std::unique_ptr<VarTypeList> listType;
 
     // Create a new constant int expression.
     // val: Constant int value to create.
@@ -24,6 +24,8 @@ public:
     {
         return std::make_unique<ASTExpressionList>(ast, std::move(elementType), std::move(head));
     }
+
+    llvm::Value* Compile(std::string name, llvm::Module& mod,  llvm::IRBuilder<>& builder, ASTFunction* func);
 
     // Virtual functions. See base class for details.
     std::unique_ptr<VarType> ReturnType(ASTFunction* func) override;
