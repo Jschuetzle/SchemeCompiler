@@ -110,6 +110,14 @@ llvm::Value* ASTFunction::Compile(std::string name, llvm::Module& mod, llvm::IRB
 
     // First, add a new function declaration to our scope.
     auto function = llvm::Function::Create((llvm::FunctionType*) funcType->GetLLVMType(builder.getContext()), llvm::GlobalValue::LinkageTypes::ExternalLinkage, name, mod);
+
+    // Add function to scope table now that we pass in name
+    if(!func)
+        ast.scopeTable.AddVariable(name, funcType->Copy(), function);
+    else
+       func->scopeTable.AddVariable(name, funcType->Copy(), function);
+
+    //name assigned for recursion purposes
     this->name = name;
 
     // Set parameter names.

@@ -29,9 +29,6 @@ private:
     // List of all local variables (stored on the stack)
     std::vector<std::string> localVariables;
 
-    // Function scope table.
-    ScopeTable scopeTable;
-
 public:
 
     // Name of the function.
@@ -42,6 +39,9 @@ public:
 
     // Actual Function definition.
     std::unique_ptr<ASTExpression> definition;
+
+    // Function scope table.
+    ScopeTable scopeTable;
 
     // Create a new function. Will automatically be added to the AST's scope table.
     // ast: AST to link to. Will be added to its scope table.
