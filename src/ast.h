@@ -2,6 +2,7 @@
 
 #include "expression.h"
 #include "expressions/function.h"
+#include "expressions/list.h"
 #include "scopeTable.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>

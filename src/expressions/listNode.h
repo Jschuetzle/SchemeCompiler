@@ -23,6 +23,8 @@ public:
         return std::make_unique<ASTExpressionListNode>(ast, std::move(data), std::move(next));
     }
 
+    llvm::Value* Compile(std::string name, int num, std::unique_ptr<VarType> expectedType, llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func);
+
     // Virtual functions. See base class for details.
     std::unique_ptr<VarType> ReturnType(ASTFunction* func) override;
     bool IsLValue(ASTFunction* func) override;

@@ -19,15 +19,16 @@ bool ASTExpressionList::IsLValue(ASTFunction* func)
     return false;
 }
 
-llvm::Value* ASTExpressionList::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func) {
-    llvm::Value* lastValue = nullptr;
-    ASTExpressionListNode* currentNode = head.get();
+llvm::Value* ASTExpressionList::Compile(std::string name, llvm::Module& mod,  llvm::IRBuilder<>& builder, ASTFunction* func) {
+    return head->Compile(name, 0, listType->Copy(), mod, builder, func);
     
+    /*
+    llvm::Value* lastValue = nullptr;
     // Iterate through each node in the linked list
     while (currentNode) {
         if (currentNode->data) {
             // Compile the expression in the current node
-            lastValue = currentNode->data->Compile(mod, builder, func);
+            lastValue = currentNode->Compile(mod, builder, func);
             if (!lastValue) {
                 throw std::runtime_error("Compilation error in expression list node.");
             }
@@ -39,6 +40,11 @@ llvm::Value* ASTExpressionList::Compile(llvm::Module& mod, llvm::IRBuilder<>& bu
     // Return the value of the last expression evaluated, or nullptr if the list is empty
     // I need to see where this compile function is being used, because I DON'T THINK RETURNING THE LAST VALUE IS WHAT WE WANT
     return lastValue;
+    */
+}
+
+llvm::Value* ASTExpressionList::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func){
+    return nullptr;
 }
 
 std::string ASTExpressionList::ToString(const std::string& prefix) {
