@@ -71,7 +71,6 @@ ASTExpression* AST::AddExpressionCall(std::unique_ptr<ASTExpression> expr)
 
 void AST::Compile()
 {
-
     std::vector<ASTFunctionParameter> emptyParams;
     auto* mainFunc = new ASTFunction(*this, VarTypeSimple::IntType.Copy(), std::move(emptyParams));
     auto func = llvm::Function::Create((llvm::FunctionType*) mainFunc->funcType->GetLLVMType(context), llvm::GlobalValue::LinkageTypes::ExternalLinkage, "main", module);
@@ -121,7 +120,7 @@ void AST::Compile()
         } else {
 
             auto* funcValue = castedFuncExpr->Compile(varName, module, builder, castedFuncExpr);
-            scopeTable.SetVariableValue(varName, funcValue);
+            //scopeTable.SetVariableValue(varName, funcValue);
         }
     }
 
