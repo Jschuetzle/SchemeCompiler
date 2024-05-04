@@ -10,10 +10,10 @@ bool ASTExpressionCheck::IsLValue(ASTFunction* func)
     return false;
 }
 
-llvm::Value* ASTExpressionCheck::Compile(llvm::IRBuilder<>& builder, ASTFunction* func)
+llvm::Value* ASTExpressionCheck::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
     llvm::Type* checkType;
-    llvm::Type* operandType = operand->Compile(builder, func)->getType();
+    llvm::Type* operandType = operand->Compile(mod, builder, func)->getType();
 
     switch (type)
     {

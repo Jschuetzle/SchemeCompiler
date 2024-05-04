@@ -1,7 +1,9 @@
 #include "string.h"
+#include <llvm/ADT/StringRef.h>
 #include <iostream>
 
 #include <regex>
+
 
 std::unique_ptr<VarType> ASTExpressionString::ReturnType(ASTFunction* func)
 {
@@ -15,7 +17,7 @@ bool ASTExpressionString::IsLValue(ASTFunction* func)
 
 llvm::Value* ASTExpressionString::Compile(llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func)
 {
-    return builder.CreateGlobalStringPtr(value); // Simply just create a global string to return. 
+    return builder.CreateGlobalStringPtr(llvm::StringRef(value), "", 0, &mod); // Simply just create a global string to return. 
 }
 
 std::string ASTExpressionString::ToString(const std::string& prefix)

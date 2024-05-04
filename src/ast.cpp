@@ -72,12 +72,20 @@ ASTExpression* AST::AddExpressionCall(std::unique_ptr<ASTExpression> expr)
 void AST::Compile()
 {
 
+    std::vector<ASTFunctionParameter> emptyParams;
+    auto* mainFunc = new ASTFunction(*this, VarTypeSimple::IntType.Copy(), std::move(emptyParams));
+     auto func = llvm::Function::Create((llvm::FunctionType*) mainFunc->funcType->GetLLVMType(context), llvm::GlobalValue::LinkageTypes::ExternalLinkage, "main", module);
+
+    llvm::BasicBlock* entry = llvm::BasicBlock::Create(context, "entry", func);
+    builder.SetInsertPoint(entry);
+
     // First, compile each binding...const auto& on the string names because these shouldn't be modified
     for (const auto& varName : globalVarList)
     {
         std::cout << "INFO: Compiling binding " + varName + "." << std::endl;
         
         //compile the expression associated with the binding...this will be an llvm::Value*
+        
         auto* value = globalVars[varName]->Compile(module, builder); 
       
         std::unique_ptr<VarType> type = globalVars[varName]->ReturnType()->Copy(); 
