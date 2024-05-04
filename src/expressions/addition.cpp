@@ -27,7 +27,7 @@ llvm::Value* ASTExpressionAddition::Compile(llvm::Module& mod, llvm::IRBuilder<>
     auto retType = a1->ReturnType();
 
     if (retType.get()->Equals(&VarTypeSimple::IntType)){
-        return builder.CreateAdd(a1->Compile(mod, builder, func), a2->Compile(mod, builder, func));
+        return builder.CreateAdd(a1->CompileRValue(mod, builder, func), a2->CompileRValue(mod, builder, func));
     }
     else if (retType.get()->Equals(&VarTypeSimple::RealType)){
         std::cout << "real" << std::endl;
