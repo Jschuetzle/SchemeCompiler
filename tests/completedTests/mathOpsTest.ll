@@ -9,6 +9,7 @@ source_filename = "TestMod"
 @f = constant double %10
 @g = constant double %12
 @h = constant double %16
+@i = constant i32 %18
 
 define i32 @main() {
 entry:
@@ -29,5 +30,7 @@ entry:
   %14 = load i32, i32 3, align 4
   %15 = sitofp i32 %14 to double
   %16 = frem double %13, %15
+  %17 = load double, double 7.000000e+00, align 8
+  %18 = mul double %17, i32 -1
   ret i32 1
 }

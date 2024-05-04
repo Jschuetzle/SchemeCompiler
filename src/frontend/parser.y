@@ -186,10 +186,9 @@ expr: datum
     | LPAREN ARITH_REMAINDER expr expr RPAREN {
       $$ = new ASTExpressionRemainder(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
     } 
-/*
     | LPAREN ARITH_MINUS expr RPAREN {  //unary minus
       $$ = new ASTExpressionNegation(ast, std::unique_ptr<ASTExpression>($3));
-    }
+    } /*
     | LPAREN CONS expr expr RPAREN
     | LPAREN CAR expr RPAREN
     | LPAREN CDR expr RPAREN */
