@@ -19,7 +19,7 @@ typedef std::tuple<std::unique_ptr<VarType>, std::string> ASTFunctionParameter;
 typedef std::vector<ASTFunctionParameter> ASTFunctionParameters;
 
 // Function type that has a declaration and optional definition.
-class ASTFunction : ASTExpression
+class ASTFunction : public ASTExpression
 {
 private:
 
@@ -32,9 +32,6 @@ private:
     // Function scope table.
     ScopeTable scopeTable;
 
-    // Actual Function definition.
-    std::unique_ptr<ASTExpression> definition = nullptr;
-
 public:
 
     // Name of the function.
@@ -43,13 +40,16 @@ public:
     // Function type.
     std::unique_ptr<VarTypeFunction> funcType;
 
+    // Actual Function definition.
+    std::unique_ptr<ASTExpression> definition;
+
     // Create a new function. Will automatically be added to the AST's scope table.
     // ast: AST to link to. Will be added to its scope table.
     // name: Name of the function to create.
     // returnType: The type of variable the function will return.
     // parameters: Collection of variable types and names to pass to the function call.
     // variadic: If the function is a variadic function.
-    explicit ASTFunction(AST& ast, std::unique_ptr<VarType> returnType, ASTFunctionParameters parameters);
+    explicit ASTFunction(AST& ast, std::unique_ptr<VarType> returnType, ASTFunctionParameters parameters, std::unique_ptr<ASTExpression> definition = nullptr);
 
     // Add a new stack variable to the function's scope table. Don't add function parameters, those are already added.
     // var: Variable declaration to add to the stack.
@@ -77,7 +77,7 @@ public:
     // Compile the function, needed during codegen phase to show LLVM our function exists.
     // mod: Module to add the function to.
     // builder: IR builder used to build instructions.
-    //void Compile(llvm::Module& mod, llvm::IRBuilder<>& builder);
+    llvm::Value* Compile(std::string name, llvm::Module& mod, llvm::IRBuilder<>& builder, ASTFunction* func);
 
 
     
