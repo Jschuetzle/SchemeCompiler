@@ -107,7 +107,7 @@ void AST::Compile()
             auto* value = globalVars[varName]->Compile(module, builder);
             auto* gVar = new llvm::GlobalVariable(module, llvmtype, true, llvm::GlobalValue::ExternalLinkage, (llvm::Constant*) value, varName);
             module.getOrInsertGlobal(varName, llvmtype);
-
+            scopeTable.SetVariableValue(varName, value);
         } else {
 
             auto* funcValue = castedExpr->Compile(varName, module, builder, castedExpr);
