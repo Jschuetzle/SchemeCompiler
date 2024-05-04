@@ -7,7 +7,7 @@ enum ASTExpressionCheckType
 {
     NullType,
     BoolType,
-    NumberType,
+    IntType,
     RealType,
     ListType
 };

@@ -34,7 +34,7 @@ static std::stringstream ss;
 
 "null?" { return NULL_CHECK_OP; }
 "boolean?" { return BOOL_CHECK_OP; }
-"number?" { return NUMBER_CHECK_OP; }
+"int?" { return INT_CHECK_OP; }
 "real?" { return REAL_CHECK_OP; }
 "list?" { return LIST_CHECK_OP; }
 "or" { return LOGICAL_OR; }

@@ -26,7 +26,7 @@
 	#include "../src/expressions/and.h"
 	#include "../src/expressions/or.h"
   #include "../src/expressions/not.h"
-	//#include "../src/expressions/if.h"
+	#include "../src/expressions/if.h"
   #include "../src/expressions/function.h"
   #include "../src/expressions/check.h"
 	#include "../src/types/simple.h"
@@ -67,7 +67,7 @@
   ASTExpressionCheckType check;
 }
 
-%token LPAREN RPAREN INT_TYPE REAL_TYPE STRING_TYPE BOOL_TYPE LIST_TYPE APOSTROPHE BOOL_LITERAL INT_LITERAL REAL_LITERAL ID RELOP_GT RELOP_LT RELOP_GE RELOP_LE RELOP_EQ ARITH_PLUS ARITH_MINUS ARITH_MULT ARITH_DIV ARITH_REMAINDER NULL_CHECK_OP BOOL_CHECK_OP NUMBER_CHECK_OP REAL_CHECK_OP LIST_CHECK_OP LOGICAL_OR LOGICAL_AND LOGICAL_NOT DEFINE LET CAR CDR CONS LAMBDA COND IF ELSE STRING_LITERAL 
+%token LPAREN RPAREN INT_TYPE REAL_TYPE STRING_TYPE BOOL_TYPE LIST_TYPE APOSTROPHE BOOL_LITERAL INT_LITERAL REAL_LITERAL ID RELOP_GT RELOP_LT RELOP_GE RELOP_LE RELOP_EQ ARITH_PLUS ARITH_MINUS ARITH_MULT ARITH_DIV ARITH_REMAINDER NULL_CHECK_OP BOOL_CHECK_OP INT_CHECK_OP REAL_CHECK_OP LIST_CHECK_OP LOGICAL_OR LOGICAL_AND LOGICAL_NOT DEFINE LET CAR CDR CONS LAMBDA COND IF ELSE STRING_LITERAL 
 
 %type <boolval> BOOL_LITERAL
 %type <strval> ID STRING_LITERAL
@@ -161,9 +161,13 @@ expr: datum
     }
   
     /*
-    | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN   ; local variable bindings
-    | LPAREN IF expr expr expr RPAREN 
-    | LPAREN IF expr expr RPAREN  
+    | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN   ; local variable bindings */
+    | LPAREN IF expr expr expr RPAREN {
+      $$ = new ASTExpressionIf(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4), std::unique_ptr<ASTExpression>($5));
+    }
+    | LPAREN IF expr expr RPAREN {
+      $$ = new ASTExpressionIf(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4), std::unique_ptr<ASTExpression>(nullptr));
+    } /*
     | LPAREN COND caseList LPAREN ELSE expr RPAREN RPAREN
     */    
     // math operations
@@ -186,10 +190,9 @@ expr: datum
     | LPAREN ARITH_REMAINDER expr expr RPAREN {
       $$ = new ASTExpressionRemainder(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4));
     } 
-/*
     | LPAREN ARITH_MINUS expr RPAREN {  //unary minus
       $$ = new ASTExpressionNegation(ast, std::unique_ptr<ASTExpression>($3));
-    }
+    } /*
     | LPAREN CONS expr expr RPAREN
     | LPAREN CAR expr RPAREN
     | LPAREN CDR expr RPAREN */
@@ -280,8 +283,8 @@ relop: RELOP_LT {
 //relop: RELOP_LT | RELOP_LE | RELOP_GT | RELOP_GE | RELOP_EQ ;
 checkOp: BOOL_CHECK_OP {
   $$ = ASTExpressionCheckType::BoolType;
-} | NUMBER_CHECK_OP {
-  $$ = ASTExpressionCheckType::NumberType;
+} | INT_CHECK_OP {
+  $$ = ASTExpressionCheckType::IntType;
 } | REAL_CHECK_OP {
   $$ = ASTExpressionCheckType::RealType;
 };

@@ -21,7 +21,7 @@ llvm::Value* ASTExpressionCheck::Compile(llvm::Module& mod, llvm::IRBuilder<>& b
         // case Null: break; // check if list is empty
         // case List: break;
         case BoolType: checkType = VarTypeSimple::BoolType.GetLLVMType(builder.getContext()); break;
-        case NumberType: checkType = VarTypeSimple::IntType.GetLLVMType(builder.getContext()); break;
+        case IntType: checkType = VarTypeSimple::IntType.GetLLVMType(builder.getContext()); break;
         case RealType: checkType = VarTypeSimple::RealType.GetLLVMType(builder.getContext()); break;
         default: throw new std::runtime_error("ERROR: Invalid check type. How did this happen.");
     }
@@ -36,7 +36,7 @@ std::string ASTExpressionCheck::ToString(const std::string& prefix)
     {
         case NullType: op = "null?"; break;
         case BoolType: op = "boolean?"; break;
-        case NumberType: op = "number?"; break;
+        case IntType: op = "int?"; break;
         case RealType: op = "real?"; break;
         case ListType: op = "list?"; break;
     }

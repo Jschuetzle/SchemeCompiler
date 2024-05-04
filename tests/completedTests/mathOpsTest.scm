@@ -11,3 +11,5 @@
 (define g (/ b 2))
 
 (define h (remainder b a))
+
+(define i (- b))
