@@ -2,7 +2,7 @@
 This project is the development of a compiler that translates Scheme, a functional programming language, into LLVM intermediate representation. The compiler focuses on a subset of the Scheme language, emphasizing immutability and static typing to enhance simplicity and performance.
 
 ## Running Tests
-All tests can be run by running the `./executeTests.sh` script in the terminal.
+All tests can be run by running the `./executeTests.sh` script in the terminal. This script compiles all `*.scm` files in `tests/` into `*.ll` then runs `lli` on the output to execute it and measures the time it takes. The compilation log can be found in `*.log` along with a graphical representation of the AST. The execution log can be found in `*Execution.log`. The timing results can be found in `*Time.log`. Note that the script relies on the user having the time library.
 
 ## Test Cases Description
 Each test case demonstrates specific functionalities of the compiler:
