@@ -26,7 +26,7 @@
 	#include "../src/expressions/and.h"
 	#include "../src/expressions/or.h"
   #include "../src/expressions/not.h"
-	//#include "../src/expressions/if.h"
+	#include "../src/expressions/if.h"
   #include "../src/expressions/function.h"
   #include "../src/expressions/check.h"
 	#include "../src/types/simple.h"
@@ -161,9 +161,13 @@ expr: datum
     }
   
     /*
-    | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN   ; local variable bindings
-    | LPAREN IF expr expr expr RPAREN 
-    | LPAREN IF expr expr RPAREN  
+    | LPAREN LET LPAREN bindList bind RPAREN expr RPAREN   ; local variable bindings */
+    | LPAREN IF expr expr expr RPAREN {
+      $$ = new ASTExpressionIf(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4), std::unique_ptr<ASTExpression>($5));
+    }
+    | LPAREN IF expr expr RPAREN {
+      $$ = new ASTExpressionIf(ast, std::unique_ptr<ASTExpression>($3), std::unique_ptr<ASTExpression>($4), std::unique_ptr<ASTExpression>(nullptr));
+    } /*
     | LPAREN COND caseList LPAREN ELSE expr RPAREN RPAREN
     */    
     // math operations
