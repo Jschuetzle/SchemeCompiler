@@ -19,6 +19,7 @@ llvm::Value* ASTExpressionMultiplication::Compile(llvm::Module& mod, llvm::IRBui
 {
     // Compile the values as needed. Remember, we can only do operations on R-Values.
     auto retType = ReturnType(func);
+    
     if (retType->Equals(&VarTypeSimple::IntType)) // Do standard multiplication on integer operands since we return an int.
         return builder.CreateMul(m1->CompileRValue(mod, builder, func), m2->CompileRValue(mod, builder, func));
     else if (retType->Equals(&VarTypeSimple::RealType)) // Do multiplication on floating point operands since we return a float.

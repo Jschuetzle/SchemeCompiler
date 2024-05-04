@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/LLVM-Lab",
-            "args": ["-i", "tests/function.scm", "-fAsm", "-o", "tests/function.ll"],
+            "args": ["-i", "tests/funcall.scm", "-fAsm", "-o", "tests/funcall.ll"],
             "cwd": "${workspaceFolder}"
         }
     ]
