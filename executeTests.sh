@@ -2,7 +2,7 @@
 # The LLVM ASM is than ran and its outut sent to the execution log.
 function runTest {
         ./run.sh -i tests/$1.scm -fAsm -o tests/$1.ll &> tests/$1.log
-        lli tests/$1.ll &> tests/$1Execution.log
+        /usr/bin/time -o tests/$1Time.log -f "%E real,%U user,%S sys" lli tests/$1.ll &> tests/$1Execution.log
 }
 
 # Run all the C file tests.
