@@ -14,15 +14,11 @@ Each test case demonstrates specific functionalities of the compiler:
 * list.scm: Ensures lists can be created, and are implemented as linked lists.
 * mathOpsTest.scm: Assesses basic mathematical operations (`remainder`, `+`, `-`, `*`, `/`).
 * varTest.scm: Verifies variable handling.
+* recurse.scm: Ensures out Scheme program is able to use basic recursion.
 
 **needs to be tested**
-* basicRecursion.scm: Ensures our Scheme program is able to use basic recursion.
 * listIter.scm: Basic function to iterrate through a list.
 * localVsGlobal.scm: Ensures variables are scoped correctly, and local variables are not accessible outside of a function.
-
-**needs to be verified**
-* condTest.scm: Ensures conditional statements work as epxpected.
-* recurse.scm: 
 
 ### Display a Control Flow graph of testMod.bc:
 1. In the bin directory, run `opt -dot-cfg-only testMod.bc`. This will create a **.main.dot** file, which contains a text representation of testMod's CFG.
