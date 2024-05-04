@@ -24,7 +24,7 @@ llvm::Value* ASTExpressionAddition::Compile(llvm::Module& mod, llvm::IRBuilder<>
 
        Also, the return type of the input function should not be apart of the conditional...it should be the return type of the operands that is checked in the conditional.
     */
-    auto retType = a1->ReturnType();
+    auto retType = ReturnType(func);
 
     if (retType.get()->Equals(&VarTypeSimple::IntType)){
         return builder.CreateAdd(a1->CompileRValue(mod, builder, func), a2->CompileRValue(mod, builder, func));
